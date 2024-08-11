@@ -7,6 +7,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
+import io.jenkins.plugins.configops.utils.Logger;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -97,11 +98,17 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
 
         @Override
         protected Map<String, Object> run() throws Exception {
+            String[] ng = step.getNamespaceGroup().split("/");
+
+            TaskListener taskListener = getContext().get(TaskListener.class);
+            Logger logger = new Logger("NacosConfigModifyApplyStep", taskListener);
+            logger.log("Applying nacos config. toolUrl:%s, nacosId:%s, namespace:%s, group:%s, dataId:%s", step.getToolUrl(), step.getNacosId(), ng[0], ng[1], step.getDataId());
+
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
             if (StringUtils.isBlank(step.getContent())) {
                 throw new IllegalArgumentException("Content is blank");
             }
-            String[] ng = step.getNamespaceGroup().split("/");
+
             NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
                     .nacosId(step.getNacosId())
                     .namespaceId(ng[0])

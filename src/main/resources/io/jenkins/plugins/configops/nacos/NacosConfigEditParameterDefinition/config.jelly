@@ -6,11 +6,11 @@
         <f:textbox name="parameter.name" value="${instance.name}"/>
     </f:entry>
 
-    <f:entry title="Namespace/Group" field="namespaceGroup">
+    <f:entry title="Nacos Namespace/Group" field="namespaceGroup">
         <f:textbox/>
     </f:entry>
 
-    <f:entry title="Data ID" field="dataId">
+    <f:entry title="Nacos Data ID" field="dataId">
         <f:textbox/>
     </f:entry>
 
@@ -19,11 +19,11 @@
     </f:entry>
 
     <f:entry title="Current Content" field="content">
-        <f:textbox/>
+        <f:textarea/>
     </f:entry>
 
     <f:entry title="Next Content" field="nextContent">
-        <f:textbox/>
+        <f:textarea/>
     </f:entry>
 
 </j:jelly>
