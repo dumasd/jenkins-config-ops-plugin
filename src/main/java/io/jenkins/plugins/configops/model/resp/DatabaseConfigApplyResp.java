@@ -1,11 +1,11 @@
 package io.jenkins.plugins.configops.model.resp;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.io.Serializable;
-import java.util.List;
 
 @Setter
 @Getter
@@ -15,7 +15,7 @@ public class DatabaseConfigApplyResp implements Serializable {
 
     private String database;
 
-    private List<SqlResult> result;
+    private List<SqlResult> result = new ArrayList<>();
 
     @Setter
     @Getter

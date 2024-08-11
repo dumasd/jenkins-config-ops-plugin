@@ -2,14 +2,12 @@ package io.jenkins.plugins.configops.model.resp;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.annotation.JSONField;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.servlet.ServletException;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;

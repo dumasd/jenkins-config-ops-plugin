@@ -9,6 +9,10 @@ import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Logger;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,11 +22,6 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 @Getter
 @Setter

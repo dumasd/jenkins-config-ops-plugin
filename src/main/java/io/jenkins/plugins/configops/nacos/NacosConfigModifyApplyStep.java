@@ -8,6 +8,11 @@ import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Logger;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -18,12 +23,6 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * 修改确认
@@ -49,14 +48,14 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
     private final String content;
 
     @DataBoundConstructor
-    public NacosConfigModifyApplyStep(String nacosId, String toolUrl, String namespaceGroup, String dataId, String content) {
+    public NacosConfigModifyApplyStep(
+            String nacosId, String toolUrl, String namespaceGroup, String dataId, String content) {
         this.nacosId = nacosId;
         this.toolUrl = toolUrl;
         this.namespaceGroup = namespaceGroup;
         this.dataId = dataId;
         this.content = content;
     }
-
 
     @Override
     public StepExecution start(StepContext context) throws Exception {
@@ -102,7 +101,9 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
 
             TaskListener taskListener = getContext().get(TaskListener.class);
             Logger logger = new Logger("NacosConfigModifyApplyStep", taskListener);
-            logger.log("Applying nacos config. toolUrl:%s, nacosId:%s, namespace:%s, group:%s, dataId:%s", step.getToolUrl(), step.getNacosId(), ng[0], ng[1], step.getDataId());
+            logger.log(
+                    "Applying nacos config. toolUrl:%s, nacosId:%s, namespace:%s, group:%s, dataId:%s",
+                    step.getToolUrl(), step.getNacosId(), ng[0], ng[1], step.getDataId());
 
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
             if (StringUtils.isBlank(step.getContent())) {

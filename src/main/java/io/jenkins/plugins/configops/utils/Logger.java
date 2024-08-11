@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.utils;
 
 import hudson.model.TaskListener;
-
 import java.io.PrintStream;
 
 /**

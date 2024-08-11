@@ -8,7 +8,6 @@ import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
-
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +15,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -85,7 +83,8 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
             if (Objects.isNull(workspace)) {
                 throw new NullPointerException("Workspace not found");
             }
-            FilePath fullDataIdFile = workspace.child(String.format("%s/%s/%s", step.getWorkingDir(), step.getNamespaceGroup(), step.getDataId()));
+            FilePath fullDataIdFile = workspace.child(
+                    String.format("%s/%s/%s", step.getWorkingDir(), step.getNamespaceGroup(), step.getDataId()));
             String fullCnt = FileUtils.readFileToString(new File(fullDataIdFile.getRemote()), StandardCharsets.UTF_8);
             String patchCnt = null;
             if (StringUtils.isNotBlank(step.getVersion())) {

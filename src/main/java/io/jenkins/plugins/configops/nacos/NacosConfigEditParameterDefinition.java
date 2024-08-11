@@ -8,17 +8,14 @@ import hudson.Util;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.Run;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Level;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;

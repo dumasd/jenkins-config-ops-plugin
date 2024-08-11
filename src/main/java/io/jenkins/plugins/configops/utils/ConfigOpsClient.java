@@ -6,22 +6,16 @@ import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
-
 import java.io.IOException;
 import java.util.List;
-
-import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
 import org.apache.hc.client5.http.impl.classic.AbstractHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
-import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpEntity;
-import org.apache.hc.core5.http.HttpException;
-import org.apache.hc.core5.http.io.HttpClientResponseHandler;
 import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.HttpEntities;
 import org.apache.hc.core5.net.URIBuilder;
