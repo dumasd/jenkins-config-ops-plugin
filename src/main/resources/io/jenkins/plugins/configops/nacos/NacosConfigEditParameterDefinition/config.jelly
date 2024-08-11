@@ -1,0 +1,29 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:c="/lib/credentials" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+         xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
+    <f:entry title="Name" field="name" help="/help/parameter/name.html">
+        <f:textbox name="parameter.name" value="${instance.name}"/>
+    </f:entry>
+
+    <f:entry title="Namespace/Group" field="namespaceGroup">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="Data ID" field="dataId">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="Format" field="format">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="Current Content" field="content">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="Next Content" field="nextContent">
+        <f:textbox/>
+    </f:entry>
+
+</j:jelly>

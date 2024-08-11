@@ -1,0 +1,20 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+         xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project">
+    <j:set var="escapeEntryTitleAndDescription" value="false"/>
+
+    <div name="parameter">
+        <input type="hidden" name="name" value="${h.escape(it.name)}"/>
+        <input type="hidden" name="workingDir" value="${it.workingDir}"/>
+        <j:scope>
+            <j:set var="descriptor" value="${it.getMetadataDescriptor()}"/>
+
+            <st:include from="${descriptor}"
+                        it="${it.metadata}"
+                        page="${descriptor.configPage}">
+            </st:include>
+        </j:scope>
+    </div>
+
+</j:jelly>

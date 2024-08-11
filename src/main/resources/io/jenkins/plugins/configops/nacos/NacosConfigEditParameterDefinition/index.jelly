@@ -1,0 +1,75 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
+          type="text/css"/>
+    <div>
+        <div class="descriptions_item_container">
+            <span class="descriptions_item_label">
+                <strong>Namespace/Group:</strong>
+            </span>
+            <span>${it.namespaceGroup}</span>
+        </div>
+        <div class="descriptions_item_container">
+            <span class="descriptions_item_label">
+                <strong>Data ID:</strong>
+            </span>
+            <span>${it.dataId}</span>
+        </div>
+    </div>
+    <div name="parameter">
+        <input type="hidden" name="name" value="${h.escape(it.name)}"/>
+        <input id="contentInput" name="content" type="hidden" value="${it.content}"/>
+        <input id="nextContentInput" name="nextContent" type="hidden" value="${it.nextContent}"/>
+    </div>
+
+    <div class="code-editor">
+        <p>
+            <em>Current Content:</em>
+        </p>
+        <div id="current-editor" class="code-item">
+        </div>
+        <p>
+            <em>Next Content:</em>
+        </p>
+        <div id="next-editor" class="code-item">
+        </div>
+    </div>
+
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/ace-builds/src-noconflict/ace.js" type="text/javascript"
+            charset="utf-8"/>
+
+    <script type="text/javascript">
+        <![CDATA[
+        const format = "${it.format}"
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const contentInput = document.getElementById('contentInput')
+            const nextContentInput = document.getElementById('nextContentInput')
+
+            var current_editor = ace.edit("current-editor", {
+                showGutter: true
+            });
+            current_editor.setTheme("ace/theme/monokai");
+            current_editor.session.setMode("ace/mode/" + format);
+            current_editor.setValue(contentInput.value)
+
+            var next_editor = ace.edit("next-editor", {
+                showGutter: true
+            });
+            next_editor.setTheme("ace/theme/monokai");
+            next_editor.session.setMode("ace/mode/" + format);
+            next_editor.setValue(nextContentInput.value)
+
+            next_editor.session.on('change', function (delta) {
+                // delta.start, delta.end, delta.lines, delta.action
+                // 监听
+                nextContentInput.value = next_editor.getValue()
+            });
+
+        })
+        ]]>
+    </script>
+
+</j:jelly>

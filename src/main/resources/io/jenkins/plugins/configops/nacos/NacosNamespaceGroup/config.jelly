@@ -1,0 +1,168 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
+          type="text/css"/>
+
+    <div class="operate-form">
+        <input type="hidden" name="toolUrl" value="${it.toolUrl}"/>
+        <f:entry title="Namespace Group" field="namespaceGroup" class="form-item-2">
+            <select id="namespaceGroup" field="namespaceGroup" style="width: 100%"/>
+        </f:entry>
+        <f:entry title="Data ID" field="dataId" class="form-item-2">
+            <select id="dataId" style="width: 100%"/>
+        </f:entry>
+        <f:entry title="Patch Version" field="version" class="form-item-1">
+            <select id="version" style="width: 100%"/>
+        </f:entry>
+        <f:entry title="Nacos Server" field="nacosServer" class="form-item-3">
+            <select id="nacosServer"/>
+        </f:entry>
+    </div>
+
+    <div class="operate-form">
+        <input id="fetchBtn" type="button" value="Fetch/Reset" class="form-item-1"></input>
+        <input id="previewBtn" type="button" value="Preview" class="form-item-1"></input>
+        <input id="applyBtn" type="button" value="Apply" class="form-item-1"></input>
+    </div>
+
+    <div class="code-editor">
+        <div id="current-editor" style="width:100%; height:345px">
+
+        </div>
+        <div style="height:5px;">
+
+        </div>
+        <div id="next-editor" style="width:100%; height:345px">
+
+        </div>
+    </div>
+
+    <div id="nacos-container">
+
+    </div>
+
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/ace-builds/src-noconflict/ace.js" type="text/javascript"
+            charset="utf-8"></script>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/js/nacos-config.js" type="text/javascript"
+            charset="utf-8"></script>
+
+    <!--    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.35.4/ace.min.js"-->
+    <!--            integrity="sha512-H7UCM6x96TJikYn0n4wC+PVBshBTfF8N9gKvSr3nmXahYW3kGYFvxE/v1Q2Qp8b8NFUS6H6MfDvZO6V6YATzjw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>-->
+
+    <script type="text/javascript">
+        <![CDATA[
+
+        const BASE_URL = "${rootURL}/descriptorByName/io.jenkins.plugins.configops.nacos.NacosNamespaceGroup";
+        const WORKING_DIR = "${it.workingDir}";
+        const TOOL_URL = "${it.toolUrl}";
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            var current_editor = ace.edit("current-editor", {
+                showGutter: true
+            });
+            current_editor.setTheme("ace/theme/monokai");
+            current_editor.session.setMode("ace/mode/yaml");
+
+            var next_editor = ace.edit("next-editor", {
+                showGutter: true
+            });
+            next_editor.setTheme("ace/theme/monokai");
+            next_editor.session.setMode("ace/mode/yaml");
+
+            console.log('dom loaded')
+
+            const nacosServerSel = document.getElementById("nacosServer");
+            const namespaceGroupSel = document.getElementById("namespaceGroup");
+            const dataIdSel = document.getElementById("dataId");
+            const versionSel = document.getElementById("version");
+            const previewBtn = document.getElementById("previewBtn");
+            const applyBtn = document.getElementById("applyBtn");
+
+            requestAndFillNacosOptions(nacosServerSel,  BASE_URL + "/fillNacosServerItems", {
+                toolUrl: TOOL_URL
+            }, ()=>{}, ()=>{})
+
+            namespaceGroupSel.disabled = true;
+            dataIdSel.disabled = true;
+            versionSel.disabled = true;
+            requestAndFillNacosOptions(namespaceGroupSel, BASE_URL + "/fillNamespaceGroupItems", {
+                'workingDir': WORKING_DIR
+            }, () => {
+                updateDataIdItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, WORKING_DIR)
+            })
+
+            namespaceGroupSel.addEventListener("change", function() {
+                namespaceGroupSel.disabled = true;
+                dataIdSel.disabled = true;
+                versionSel.disabled = true;
+                current_editor.setValue("")
+                next_editor.setValue("")
+                updateDataIdItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, WORKING_DIR)
+            })
+
+            dataIdSel.addEventListener("change", function() {
+                namespaceGroupSel.disabled = true;
+                dataIdSel.disabled = true;
+                versionSel.disabled = true;
+                current_editor.setValue("")
+                next_editor.setValue("")
+                updateVersionItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, WORKING_DIR)
+            })
+
+            previewBtn.addEventListener("click", function() {
+                console.log(nacosServerSel.selectedIndex, namespaceGroupSel.selectedIndex, dataIdSel.selectedIndex, versionSel.selectedIndex)
+                if (nacosServerSel.selectedIndex < 0) {
+                    alert("Please select nacos server.");
+                    return;
+                }
+                if (namespaceGroupSel.selectedIndex < 0) {
+                    alert("Please select namespace/group.");
+                    return;
+                }
+                if (dataIdSel.selectedIndex < 0) {
+                    alert("Please select dataId.");
+                    return;
+                }
+
+                var nacosIdVal = nacosServerSel.options[nacosServerSel.selectedIndex].value;
+                var namespaceGroupVal = namespaceGroupSel.options[namespaceGroupSel.selectedIndex].value;
+                var dataIdSelVal = dataIdSel.options[dataIdSel.selectedIndex].value;
+                var versionSelVal = "";
+                if (versionSel.selectedIndex >= 0) {
+                    versionSelVal = versionSel.options[versionSel.selectedIndex].value;
+                }
+
+                new Ajax.Request(BASE_URL + '/configModifyPreview', {
+                    method: 'post',
+                    parameters: {
+                        'workingDir': WORKING_DIR,
+                        'toolUrl': TOOL_URL,
+                        'nacosServer': nacosIdVal,
+                        'namespaceGroup': namespaceGroupVal,
+                        'dataId': dataIdSelVal,
+                        'version': versionSelVal
+                    },
+                    onSuccess: function(response) {
+                        let data = response.responseText.evalJSON();
+                        current_editor.session.setMode("ace/mode/" + data.format);
+                        next_editor.session.setMode("ace/mode/" + data.format);
+                        if (data.content) {
+                            current_editor.setValue(data.content)
+                        }
+                        if (data.next_content) {
+                            next_editor.setValue(data.next_content)
+                        }
+                    },
+                    onFailure: function(response) {
+                        alert('Request failed: ' + response.statusText);
+                    }
+                })
+            });
+        })
+
+        ]]>
+    </script>
+
+</j:jelly>

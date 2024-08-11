@@ -1,0 +1,65 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
+          type="text/css"/>
+    <j:set var="escapeEntryTitleAndDescription" value="false"/>
+
+    <div name="parameter">
+        <input type="hidden" name="name" value="${h.escape(it.name)}"/>
+        <div class="operate-form" name="value">
+            <f:entry title="Namespace Group" field="namespaceGroup" class="form-item-2">
+                <select id="namespaceGroup" name="namespaceGroup" field="namespaceGroup" style="width: 100%"/>
+            </f:entry>
+            <f:entry title="Data ID" field="dataId" class="form-item-2">
+                <select id="dataId" name="dataId" style="width: 100%"/>
+            </f:entry>
+            <f:entry title="Patch Version" field="version" class="form-item-1">
+                <select id="version" name="version" style="width: 100%"/>
+            </f:entry>
+        </div>
+    </div>
+
+
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/js/nacos-config.js" type="text/javascript"
+            charset="utf-8"/>
+
+    <script type="text/javascript">
+        <![CDATA[
+        const BASE_URL = "${rootURL}/descriptorByName/io.jenkins.plugins.configops.nacos.NacosConfigChoicesParameterDefinition";
+        const jsonChoices = '${it.json}';
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            const namespaceGroupSel = document.getElementById("namespaceGroup");
+            const dataIdSel = document.getElementById("dataId");
+            const versionSel = document.getElementById("version");
+
+            namespaceGroupSel.disabled = true;
+            dataIdSel.disabled = true;
+            versionSel.disabled = true;
+            requestAndFillNacosOptions(namespaceGroupSel, BASE_URL + "/fillNamespaceGroupItems", {
+                'json': jsonChoices
+            }, () => {
+                updateDataIdItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, jsonChoices)
+            })
+
+            namespaceGroupSel.addEventListener("change", function () {
+                namespaceGroupSel.disabled = true;
+                dataIdSel.disabled = true;
+                versionSel.disabled = true;
+                updateDataIdItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, jsonChoices)
+            })
+
+            dataIdSel.addEventListener("change", function () {
+                namespaceGroupSel.disabled = true;
+                dataIdSel.disabled = true;
+                versionSel.disabled = true;
+                updateVersionItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, jsonChoices)
+            })
+
+        })
+        ]]>
+    </script>
+
+</j:jelly>

@@ -1,0 +1,21 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:c="/lib/credentials" xmlns:st="jelly:stapler" xmlns:d="jelly:define"
+         xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form"
+         xmlns:i="jelly:fmt" xmlns:p="/lib/hudson/project" >
+    <f:entry title="${%Name}" field="name" help="/help/parameter/name.html">
+        <f:textbox name="parameter.name" value="${instance.name}"/>
+    </f:entry>
+
+    <f:entry title="${%WorkingDir}" field="workingDir">
+        <f:textbox/>
+    </f:entry>
+
+    <f:entry title="${%ToolUrl}" field="toolUrl">
+        <f:textbox default="http://127.0.0.1:5000"/>
+    </f:entry>
+
+    <f:entry title="Credentials" field="credentialsId">
+        <c:select/>
+    </f:entry>
+
+</j:jelly>
