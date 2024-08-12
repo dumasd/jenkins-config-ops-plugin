@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -91,6 +92,7 @@ public class NacosConfigsGetterStep extends Step implements Serializable {
                             String[] ss = StringUtils.split(path, File.separatorChar);
                             return ss[ss.length - 2];
                         })
+                        .sorted(Comparator.reverseOrder())
                         .collect(Collectors.toList());
                 file.setVersions(vs);
             }

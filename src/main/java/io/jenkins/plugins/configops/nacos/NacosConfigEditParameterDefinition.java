@@ -10,7 +10,6 @@ import hudson.model.ParameterValue;
 import hudson.model.Run;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -68,18 +67,16 @@ public class NacosConfigEditParameterDefinition extends ParameterDefinition {
 
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        log.log(Level.INFO, "Create value with jo. {0}", jo);
         return new NacosConfigEditParameterValue(getName(), jo.getString("nextContent"));
     }
 
     @Override
     public ParameterValue createValue(StaplerRequest req) {
-        log.log(Level.INFO, "Create value without jo.");
         try {
             JSONObject jo = req.getSubmittedForm();
             return createValue(req, jo);
         } catch (Exception e) {
-            throw new RuntimeException("Create value error.", e);
+            throw new IllegalStateException("Create value error.", e);
         }
     }
 

@@ -78,7 +78,7 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
                 logger.log("sql:%s", sqlResult.getSql());
                 logger.log("Affected row count %s", sqlResult.getRowcount().toString());
             }
-            return null;
+            return resp.toMap();
         }
     }
 

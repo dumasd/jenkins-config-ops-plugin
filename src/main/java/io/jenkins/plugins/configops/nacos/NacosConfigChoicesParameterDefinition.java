@@ -48,7 +48,6 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
         log.log(Level.INFO, "Create value with jo. {0}", jo);
         JSONObject versionMap = jo.getJSONObject("value");
-
         return new NacosConfigChoicesParameterValue(
                 getName(),
                 versionMap.getString("namespaceGroup"),
@@ -58,12 +57,11 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
 
     @Override
     public ParameterValue createValue(StaplerRequest req) {
-        log.log(Level.INFO, "Create value without jo.");
         try {
             JSONObject jo = req.getSubmittedForm();
             return createValue(req, jo);
         } catch (Exception e) {
-            throw new RuntimeException("Create value error.", e);
+            throw new IllegalStateException("Create value error.", e);
         }
     }
 
@@ -152,11 +150,10 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
         public ListBoxModel doFillVersionItems(
                 @QueryParameter(value = "json", required = true) String json,
                 @QueryParameter(value = "namespaceGroup", required = true) String namespaceGroup,
-                @QueryParameter(value = "dataId", required = true) String dataId)
-                throws Exception {
+                @QueryParameter(value = "dataId", required = true) String dataId) {
             List<NacosFileDTO> list = JSON.parseArray(json, NacosFileDTO.class);
             ListBoxModel result = new ListBoxModel();
-
+            result.add(new ListBoxModel.Option("Not Select", "", true));
             for (NacosFileDTO file : list) {
                 if (Objects.equals(namespaceGroup, file.spliceNamespaceGroup())
                         && Objects.equals(file.getDataId(), dataId)) {
@@ -165,10 +162,6 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
                     }
                     break;
                 }
-            }
-
-            if (!result.isEmpty()) {
-                result.get(0).selected = true;
             }
             return result;
         }
