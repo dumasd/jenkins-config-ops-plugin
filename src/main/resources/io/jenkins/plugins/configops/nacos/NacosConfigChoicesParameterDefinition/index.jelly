@@ -17,6 +17,12 @@
             <f:entry title="Patch Version" field="version" class="form-item-1">
                 <select id="version" name="version" style="width: 100%"/>
             </f:entry>
+            <f:entry title="Show Preview" field="showPreview" class="form-item-1">
+                <select id="showPreview" name="showPreview" style="width: 100%">
+                    <option value="true" selected="true">True</option>
+                    <option value="false" >False</option>
+                </select>
+            </f:entry>
         </div>
     </div>
 

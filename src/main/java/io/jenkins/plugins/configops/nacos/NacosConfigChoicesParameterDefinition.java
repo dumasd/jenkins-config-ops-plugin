@@ -10,6 +10,7 @@ import hudson.model.ParameterValue;
 import hudson.model.Run;
 import hudson.util.ListBoxModel;
 import io.jenkins.plugins.configops.model.dto.NacosFileDTO;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -48,11 +50,14 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
         log.log(Level.INFO, "Create value with jo. {0}", jo);
         JSONObject versionMap = jo.getJSONObject("value");
+        boolean showPreview =
+                Boolean.parseBoolean(versionMap.getOrDefault("showPreview", true).toString());
         return new NacosConfigChoicesParameterValue(
                 getName(),
                 versionMap.getString("namespaceGroup"),
                 versionMap.getString("dataId"),
-                versionMap.getOrDefault("version", "").toString());
+                versionMap.getOrDefault("version", "").toString(),
+                showPreview);
     }
 
     @Override
@@ -73,12 +78,14 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
         private String namespaceGroup;
         private String dataId;
         private String version;
+        private boolean showPreview;
 
-        public NacosConfigChoicesParameterValue(String name, String namespaceGroup, String dataId, String version) {
+        public NacosConfigChoicesParameterValue(String name, String namespaceGroup, String dataId, String version, boolean showPreview) {
             super(name);
             this.namespaceGroup = namespaceGroup;
             this.dataId = dataId;
             this.version = Util.fixNull(version);
+            this.showPreview = showPreview;
         }
 
         @Override
@@ -86,6 +93,7 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
             env.put(name + "_NG", namespaceGroup);
             env.put(name + "_DATE_ID", dataId);
             env.put(name + "_VERSION", version);
+            env.put(name + "_PREVIEW", Boolean.toString(showPreview));
         }
 
         @Override
@@ -94,6 +102,7 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
             value.put("namespaceGroup", namespaceGroup);
             value.put("dataId", dataId);
             value.put("version", version);
+            value.put("showPreview", showPreview);
             return value;
         }
     }
@@ -113,8 +122,7 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
         }
 
         @POST
-        public ListBoxModel doFillNamespaceGroupItems(@QueryParameter(value = "json", required = true) String json)
-                throws Exception {
+        public ListBoxModel doFillNamespaceGroupItems(@QueryParameter(value = "json", required = true) String json) {
             List<NacosFileDTO> list = JSON.parseArray(json, NacosFileDTO.class);
             Set<String> set = new HashSet<>();
             list.forEach(e -> set.add(e.getNamespace() + "/" + e.getGroup()));
@@ -130,8 +138,7 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
 
         public ListBoxModel doFillDataIdItems(
                 @QueryParameter(value = "json", required = true) String json,
-                @QueryParameter(value = "namespaceGroup", required = true) String namespaceGroup)
-                throws Exception {
+                @QueryParameter(value = "namespaceGroup", required = true) String namespaceGroup) {
             List<NacosFileDTO> list = JSON.parseArray(json, NacosFileDTO.class);
             ListBoxModel result = new ListBoxModel();
 
