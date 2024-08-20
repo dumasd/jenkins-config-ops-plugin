@@ -1,13 +1,12 @@
 package io.jenkins.plugins.configops.model.dto;
 
+import java.io.Serializable;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.io.Serializable;
-import java.util.List;
 
 @Setter
 @Getter
@@ -20,6 +19,4 @@ public class DatabaseConfigOptionDTO implements Serializable {
     private String database;
 
     private List<String> sqlFileNames;
-
-
 }

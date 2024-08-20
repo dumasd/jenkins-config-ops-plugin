@@ -6,6 +6,11 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import io.jenkins.plugins.configops.model.dto.DatabaseConfigOptionDTO;
 import io.jenkins.plugins.configops.utils.Utils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -15,12 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Bruce.Wu
@@ -42,7 +41,7 @@ public class DatabaseConfigChoicesParameterDefinition extends ParameterDefinitio
 
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-//        log.log(Level.INFO, "Create value with jo. {0}", jo);
+        //        log.log(Level.INFO, "Create value with jo. {0}", jo);
         JSONObject selectedValue = jo.getJSONObject("value");
         List<DatabaseConfigOptionDTO> result = new ArrayList<>();
         for (Object item : selectedValue.values()) {

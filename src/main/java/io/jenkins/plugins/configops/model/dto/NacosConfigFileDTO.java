@@ -13,7 +13,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class NacosConfigFileDTO implements Serializable, Comparable<NacosConfigFileDTO> {
+public class NacosConfigFileDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -39,22 +39,5 @@ public class NacosConfigFileDTO implements Serializable, Comparable<NacosConfigF
 
     public String spliceNamespaceGroupDataId() {
         return String.format("%s/%s/%s", namespace, group, dataId);
-    }
-
-    @Override
-    public int compareTo(NacosConfigFileDTO o) {
-        if (this == o) {
-            return 0;
-        }
-        int cpx = this.namespace.compareTo(o.namespace);
-        if (cpx != 0) {
-            return cpx;
-        }
-        cpx = this.group.compareTo(o.group);
-        if (cpx != 0) {
-            return cpx;
-        }
-        cpx = this.group.compareTo(o.dataId);
-        return cpx;
     }
 }

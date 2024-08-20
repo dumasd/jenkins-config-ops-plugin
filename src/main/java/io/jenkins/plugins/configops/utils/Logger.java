@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.utils;
 
 import hudson.model.TaskListener;
-
 import java.io.PrintStream;
 
 /**
@@ -57,7 +56,7 @@ public class Logger {
         log(true, msg, args);
     }
 
-    public void log(boolean withPrefix, String msg,  Object... args) {
+    public void log(boolean withPrefix, String msg, Object... args) {
         if (withPrefix) {
             debug("[" + prefix + "] " + msg, args);
         } else {

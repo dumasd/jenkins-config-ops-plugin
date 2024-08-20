@@ -11,7 +11,6 @@ import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.model.resp.ListNacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
-
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +19,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -85,18 +83,14 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
             }
 
             for (NacosChoiceOptionDTO item : step.getItems()) {
-                FilePath fullDataIdFile = workingDirPath.child(String.format(
-                        "%s/%s/%s", item.getNamespace(), item.getGroup(), item.getDataId()));
+                FilePath fullDataIdFile = workingDirPath.child(
+                        String.format("%s/%s/%s", item.getNamespace(), item.getGroup(), item.getDataId()));
                 String fullCnt =
                         FileUtils.readFileToString(new File(fullDataIdFile.getRemote()), StandardCharsets.UTF_8);
                 String patchCnt = null;
                 if (StringUtils.isNotBlank(item.getVersion())) {
                     FilePath patchDataIdFile = workingDirPath.child(String.format(
-                            "%s/%s/%s/%s",
-                            item.getNamespace(),
-                            item.getGroup(),
-                            item.getVersion(),
-                            item.getDataId()));
+                            "%s/%s/%s/%s", item.getNamespace(), item.getGroup(), item.getVersion(), item.getDataId()));
                     patchCnt =
                             FileUtils.readFileToString(new File(patchDataIdFile.getRemote()), StandardCharsets.UTF_8);
                 }

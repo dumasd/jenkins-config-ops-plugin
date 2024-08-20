@@ -10,7 +10,6 @@ import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Logger;
-
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -55,9 +53,12 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
 
     private final List<DatabaseConfigOptionDTO> items;
 
-
     @DataBoundConstructor
-    public DatabaseConfigApplyStep(@NonNull String databaseId, @NonNull String toolUrl, String workingDir, @NonNull List<DatabaseConfigOptionDTO> items) {
+    public DatabaseConfigApplyStep(
+            @NonNull String databaseId,
+            @NonNull String toolUrl,
+            String workingDir,
+            @NonNull List<DatabaseConfigOptionDTO> items) {
         this.databaseId = databaseId;
         this.toolUrl = toolUrl;
         this.workingDir = workingDir;
@@ -95,20 +96,25 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
                     continue;
                 }
                 for (String sqlFileName : item.getSqlFileNames()) {
-                    FilePath sqlFilePath = workingDirPath.child(String.format(
-                            "%s/%s", item.getDatabase(), sqlFileName));
+                    FilePath sqlFilePath =
+                            workingDirPath.child(String.format("%s/%s", item.getDatabase(), sqlFileName));
                     String sql = FileUtils.readFileToString(new File(sqlFilePath.getRemote()), StandardCharsets.UTF_8);
                     DatabaseConfigReq databaseConfigReq = DatabaseConfigReq.builder()
                             .dbId(step.getDatabaseId())
                             .database(item.getDatabase())
                             .sql(sql)
                             .build();
-                    logger.log("########## Execute sql file start. database:%s, sqlFileName:%s", item.getDatabase(), sqlFileName);
+                    logger.log(
+                            "########## Execute sql file start. database:%s, sqlFileName:%s",
+                            item.getDatabase(), sqlFileName);
                     DatabaseConfigApplyResp resp = client.databaseConfigApply(databaseConfigReq);
                     logger.log(false, "Database URL:%s", resp.getDatabase());
                     for (DatabaseConfigApplyResp.SqlResult sqlResult : resp.getResult()) {
                         logger.log(false, "%s", sqlResult.getSql());
-                        logger.log(false, "Affected row count: %s\n", sqlResult.getRowcount().toString());
+                        logger.log(
+                                false,
+                                "Affected row count: %s\n",
+                                sqlResult.getRowcount().toString());
                     }
                     logger.log("========== Execute sql file end.");
                 }

@@ -6,17 +6,14 @@ import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
-
 import java.io.IOException;
 import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.ClientProtocolException;
 import org.apache.hc.client5.http.HttpResponseException;
 import org.apache.hc.client5.http.classic.methods.HttpGet;
 import org.apache.hc.client5.http.classic.methods.HttpPost;
 import org.apache.hc.client5.http.classic.methods.HttpPut;
-import org.apache.hc.client5.http.impl.classic.BasicHttpClientResponseHandler;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.core5.http.ClassicHttpResponse;
 import org.apache.hc.core5.http.ContentType;
@@ -133,6 +130,5 @@ public class ConfigOpsClient {
          * object.
          */
         public abstract T handleEntity(HttpEntity entity) throws IOException;
-
     }
 }

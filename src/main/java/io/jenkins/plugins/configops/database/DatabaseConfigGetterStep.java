@@ -7,6 +7,14 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.dto.DatabaseConfigOptionDTO;
 import io.jenkins.plugins.configops.utils.SqlFileFilter;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -19,15 +27,6 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * @author Bruce.Wu
@@ -89,7 +88,8 @@ public class DatabaseConfigGetterStep extends Step implements Serializable {
                 if (CollectionUtils.isNotEmpty(sqlFiles)) {
                     DatabaseConfigOptionDTO dto = new DatabaseConfigOptionDTO();
                     dto.setDatabase(databaseDir.getName());
-                    dto.setSqlFileNames(sqlFiles.stream().map(FilePath::getName)
+                    dto.setSqlFileNames(sqlFiles.stream()
+                            .map(FilePath::getName)
                             .sorted(Comparator.reverseOrder())
                             .collect(Collectors.toList()));
                     result.add(dto);

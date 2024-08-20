@@ -2,7 +2,6 @@ package io.jenkins.plugins.configops.utils;
 
 import java.io.File;
 import java.util.Collection;
-
 import org.apache.commons.lang.StringUtils;
 
 /**

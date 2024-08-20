@@ -145,7 +145,8 @@ public class NacosNamespaceGroup extends AbstractDescribableImpl<NacosNamespaceG
         }
 
         public ListBoxModel doFillNacosServerItems(
-                @QueryParameter("toolUrl") String toolUrl, @QueryParameter("credentialsId") String credentialsId) throws Exception {
+                @QueryParameter("toolUrl") String toolUrl, @QueryParameter("credentialsId") String credentialsId)
+                throws Exception {
             ListBoxModel list = new ListBoxModel();
             ConfigOpsClient client = new ConfigOpsClient(toolUrl);
             List<NacosServerDTO> nacosServers = client.getNacosServers();
