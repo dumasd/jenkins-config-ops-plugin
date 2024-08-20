@@ -5,7 +5,7 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
-import io.jenkins.plugins.configops.model.dto.NacosFileDTO;
+import io.jenkins.plugins.configops.model.dto.NacosConfigFileDTO;
 import io.jenkins.plugins.configops.utils.FileFileFilter;
 import java.io.File;
 import java.io.Serializable;
@@ -51,7 +51,7 @@ public class NacosConfigsGetterStep extends Step implements Serializable {
     }
 
     public static class NacosConfigsGetterStepExecution
-            extends SynchronousNonBlockingStepExecution<List<NacosFileDTO>> {
+            extends SynchronousNonBlockingStepExecution<List<NacosConfigFileDTO>> {
 
         private final String workingDir;
 
@@ -61,16 +61,14 @@ public class NacosConfigsGetterStep extends Step implements Serializable {
         }
 
         @Override
-        protected List<NacosFileDTO> run() throws Exception {
+        protected List<NacosConfigFileDTO> run() throws Exception {
             FilePath workspace = this.getContext().get(FilePath.class);
-            if (Objects.isNull(workspace)) {
-                throw new NullPointerException("Workspace not found");
-            }
+            Objects.requireNonNull(workspace, "Workspace not found");
             FilePath workingDirPath = workspace;
             if (StringUtils.isNotBlank(workingDir)) {
                 workingDirPath = workspace.child(workingDir);
             }
-            List<NacosFileDTO> list = new ArrayList<>();
+            List<NacosConfigFileDTO> list = new ArrayList<>();
 
             List<FilePath> nsPaths = workingDirPath.listDirectories();
             for (FilePath nsPath : nsPaths) {
@@ -78,12 +76,12 @@ public class NacosConfigsGetterStep extends Step implements Serializable {
                 for (FilePath groupPath : groupPaths) {
                     List<FilePath> dataIdPaths = groupPath.list(new FileFileFilter());
                     for (FilePath dataIdPath : dataIdPaths) {
-                        list.add(new NacosFileDTO(nsPath.getName(), groupPath.getName(), dataIdPath.getName()));
+                        list.add(new NacosConfigFileDTO(nsPath.getName(), groupPath.getName(), dataIdPath.getName()));
                     }
                 }
             }
 
-            for (NacosFileDTO file : list) {
+            for (NacosConfigFileDTO file : list) {
                 FilePath groupPath = workingDirPath.child(file.getNamespace() + "/" + file.getGroup());
                 FilePath[] versionPaths = groupPath.list("*/" + file.getDataId());
                 List<String> vs = Arrays.stream(versionPaths)

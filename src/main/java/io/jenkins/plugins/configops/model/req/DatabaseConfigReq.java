@@ -17,4 +17,8 @@ public class DatabaseConfigReq implements Serializable {
     private String dbId;
 
     private String sql;
+    /**
+     * 数据库名称
+     */
+    private String database;
 }

@@ -5,16 +5,22 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import io.jenkins.plugins.configops.model.dto.NacosChoiceOptionDTO;
+import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
+import io.jenkins.plugins.configops.model.resp.ListNacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
+
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Map;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.java.Log;
@@ -26,7 +32,6 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
-import org.kohsuke.stapler.DataBoundSetter;
 
 @Setter
 @Getter
@@ -40,25 +45,15 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
 
     private final String toolUrl;
 
-    private final String namespaceGroup;
-
-    private final String dataId;
-
-    private String version;
+    private final List<NacosChoiceOptionDTO> items;
 
     @DataBoundConstructor
     public NacosConfigModifyPreviewStep(
-            String workingDir, String nacosId, String toolUrl, String namespaceGroup, String dataId) {
+            String workingDir, String nacosId, String toolUrl, List<NacosChoiceOptionDTO> items) {
         this.workingDir = workingDir;
         this.nacosId = nacosId;
         this.toolUrl = toolUrl;
-        this.namespaceGroup = namespaceGroup;
-        this.dataId = dataId;
-    }
-
-    @DataBoundSetter
-    public void setVersion(String version) {
-        this.version = version;
+        this.items = items;
     }
 
     @Override
@@ -67,43 +62,64 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
     }
 
     public static class NacosConfigsGetterStepExecution
-            extends SynchronousNonBlockingStepExecution<Map<String, Object>> {
+            extends SynchronousNonBlockingStepExecution<ListNacosConfigModifyPreviewResp> {
 
         private final NacosConfigModifyPreviewStep step;
 
-        protected NacosConfigsGetterStepExecution(@NonNull StepContext context, NacosConfigModifyPreviewStep step) {
+        public NacosConfigsGetterStepExecution(@NonNull StepContext context, NacosConfigModifyPreviewStep step) {
             super(context);
             this.step = step;
         }
 
         @Override
-        protected Map<String, Object> run() throws Exception {
+        protected ListNacosConfigModifyPreviewResp run() throws Exception {
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
             FilePath workspace = this.getContext().get(FilePath.class);
-            if (Objects.isNull(workspace)) {
-                throw new NullPointerException("Workspace not found");
+            Objects.requireNonNull(workspace, "Workspace not found");
+            List<NacosConfigModifyDTO> previewDTOList =
+                    new ArrayList<>(step.getItems().size());
+            Objects.requireNonNull(workspace, "Workspace not found");
+            FilePath workingDirPath = workspace;
+            if (StringUtils.isNotBlank(step.getWorkingDir())) {
+                workingDirPath = workspace.child(step.getWorkingDir());
             }
-            FilePath fullDataIdFile = workspace.child(
-                    String.format("%s/%s/%s", step.getWorkingDir(), step.getNamespaceGroup(), step.getDataId()));
-            String fullCnt = FileUtils.readFileToString(new File(fullDataIdFile.getRemote()), StandardCharsets.UTF_8);
-            String patchCnt = null;
-            if (StringUtils.isNotBlank(step.getVersion())) {
-                FilePath patchDataIdFile = workspace.child(String.format(
-                        "%s/%s/%s/%s",
-                        step.getWorkingDir(), step.getNamespaceGroup(), step.getVersion(), step.getDataId()));
-                patchCnt = FileUtils.readFileToString(new File(patchDataIdFile.getRemote()), StandardCharsets.UTF_8);
+
+            for (NacosChoiceOptionDTO item : step.getItems()) {
+                FilePath fullDataIdFile = workingDirPath.child(String.format(
+                        "%s/%s/%s", item.getNamespace(), item.getGroup(), item.getDataId()));
+                String fullCnt =
+                        FileUtils.readFileToString(new File(fullDataIdFile.getRemote()), StandardCharsets.UTF_8);
+                String patchCnt = null;
+                if (StringUtils.isNotBlank(item.getVersion())) {
+                    FilePath patchDataIdFile = workingDirPath.child(String.format(
+                            "%s/%s/%s/%s",
+                            item.getNamespace(),
+                            item.getGroup(),
+                            item.getVersion(),
+                            item.getDataId()));
+                    patchCnt =
+                            FileUtils.readFileToString(new File(patchDataIdFile.getRemote()), StandardCharsets.UTF_8);
+                }
+
+                NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
+                        .nacosId(step.getNacosId())
+                        .namespaceId(item.getNamespace())
+                        .group(item.getGroup())
+                        .dataId(item.getDataId())
+                        .fullContent(fullCnt)
+                        .patchContent(patchCnt)
+                        .build();
+                NacosConfigModifyPreviewResp resp = client.nacosConfigModifyPreview(nacosConfigReq);
+                NacosConfigModifyDTO dto = new NacosConfigModifyDTO();
+                dto.setNamespace(item.getNamespace());
+                dto.setGroup(item.getGroup());
+                dto.setDataId(item.getDataId());
+                dto.setFormat(resp.getFormat());
+                dto.setContent(resp.getContent());
+                dto.setNextContent(resp.getNextContent());
+                previewDTOList.add(dto);
             }
-            String[] ng = step.getNamespaceGroup().split("/");
-            NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
-                    .nacosId(step.getNacosId())
-                    .namespaceId(ng[0])
-                    .group(ng[1])
-                    .dataId(step.getDataId())
-                    .fullContent(fullCnt)
-                    .patchContent(patchCnt)
-                    .build();
-            NacosConfigModifyPreviewResp resp = client.nacosConfigModifyPreview(nacosConfigReq);
-            return resp.toMap();
+            return new ListNacosConfigModifyPreviewResp(previewDTOList);
         }
     }
 

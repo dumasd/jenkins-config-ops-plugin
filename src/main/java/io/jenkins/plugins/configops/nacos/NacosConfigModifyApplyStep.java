@@ -5,18 +5,20 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Logger;
+import io.jenkins.plugins.configops.utils.Utils;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -41,20 +43,13 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
 
     private final String toolUrl;
 
-    private final String namespaceGroup;
-
-    private final String dataId;
-
-    private final String content;
+    private final List<NacosConfigModifyDTO> items;
 
     @DataBoundConstructor
-    public NacosConfigModifyApplyStep(
-            String nacosId, String toolUrl, String namespaceGroup, String dataId, String content) {
+    public NacosConfigModifyApplyStep(String nacosId, String toolUrl, @NonNull List<NacosConfigModifyDTO> items) {
         this.nacosId = nacosId;
         this.toolUrl = toolUrl;
-        this.namespaceGroup = namespaceGroup;
-        this.dataId = dataId;
-        this.content = content;
+        this.items = items;
     }
 
     @Override
@@ -97,29 +92,30 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
 
         @Override
         protected Map<String, Object> run() throws Exception {
-            String[] ng = step.getNamespaceGroup().split("/");
-
             TaskListener taskListener = getContext().get(TaskListener.class);
             Logger logger = new Logger("NacosConfigModifyApplyStep", taskListener);
-            logger.log(
-                    "Applying nacos config. toolUrl:%s, nacosId:%s, namespace:%s, group:%s, dataId:%s",
-                    step.getToolUrl(), step.getNacosId(), ng[0], ng[1], step.getDataId());
-
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
-            if (StringUtils.isBlank(step.getContent())) {
-                throw new IllegalArgumentException("Content is blank");
+            for (NacosConfigModifyDTO item : step.getItems()) {
+                Utils.requireNotBlank(item.getNamespace(), "Namespace is blank");
+                Utils.requireNotBlank(item.getGroup(), "Group is blank");
+                Utils.requireNotBlank(item.getDataId(), "DataId is blank");
+                Utils.requireNotBlank(item.getNextContent(), "Next Content is blank");
             }
 
-            NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
-                    .nacosId(step.getNacosId())
-                    .namespaceId(ng[0])
-                    .group(ng[1])
-                    .dataId(step.getDataId())
-                    .content(step.getContent())
-                    .build();
-            String result = client.nacosConfigModifyApply(nacosConfigReq);
             Map<String, Object> map = new HashMap<>();
-            map.put("result", result);
+            for (NacosConfigModifyDTO item : step.getItems()) {
+                logger.log(
+                        "Applying nacos config. toolUrl:%s, nacosId:%s, namespace:%s, group:%s, dataId:%s",
+                        step.getToolUrl(), step.getNacosId(), item.getNamespace(), item.getGroup(), item.getDataId());
+                NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
+                        .nacosId(step.getNacosId())
+                        .namespaceId(item.getNamespace())
+                        .group(item.getGroup())
+                        .dataId(item.getDataId())
+                        .content(item.getNextContent())
+                        .build();
+                String result = client.nacosConfigModifyApply(nacosConfigReq);
+            }
             return map;
         }
     }

@@ -5,17 +5,28 @@ import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import io.jenkins.plugins.configops.model.dto.DatabaseConfigOptionDTO;
 import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Logger;
+
+import java.io.File;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -36,16 +47,21 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
      * Config Ops工具地址
      */
     private final String toolUrl;
+
     /**
-     * SQL脚本
+     * 目录
      */
-    private final String sql;
+    private final String workingDir;
+
+    private final List<DatabaseConfigOptionDTO> items;
+
 
     @DataBoundConstructor
-    public DatabaseConfigApplyStep(String databaseId, String toolUrl, String sql) {
+    public DatabaseConfigApplyStep(@NonNull String databaseId, @NonNull String toolUrl, String workingDir, @NonNull List<DatabaseConfigOptionDTO> items) {
         this.databaseId = databaseId;
         this.toolUrl = toolUrl;
-        this.sql = sql;
+        this.workingDir = workingDir;
+        this.items = items;
     }
 
     @Override
@@ -68,17 +84,36 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
             TaskListener taskListener = getContext().get(TaskListener.class);
             Logger logger = new Logger("DatabaseConfigApplyStep", taskListener);
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
-            DatabaseConfigReq databaseConfigReq = DatabaseConfigReq.builder()
-                    .dbId(step.getDatabaseId())
-                    .sql(step.getSql())
-                    .build();
-            DatabaseConfigApplyResp resp = client.databaseConfigApply(databaseConfigReq);
-            logger.log("Execute database: %s", resp.getDatabase());
-            for (DatabaseConfigApplyResp.SqlResult sqlResult : resp.getResult()) {
-                logger.log("sql:%s", sqlResult.getSql());
-                logger.log("Affected row count %s", sqlResult.getRowcount().toString());
+            FilePath workspace = this.getContext().get(FilePath.class);
+            Objects.requireNonNull(workspace, "Workspace not found");
+            FilePath workingDirPath = workspace;
+            if (StringUtils.isNotBlank(step.getWorkingDir())) {
+                workingDirPath = workspace.child(step.getWorkingDir());
             }
-            return resp.toMap();
+            for (DatabaseConfigOptionDTO item : step.getItems()) {
+                if (CollectionUtils.isEmpty(item.getSqlFileNames())) {
+                    continue;
+                }
+                for (String sqlFileName : item.getSqlFileNames()) {
+                    FilePath sqlFilePath = workingDirPath.child(String.format(
+                            "%s/%s", item.getDatabase(), sqlFileName));
+                    String sql = FileUtils.readFileToString(new File(sqlFilePath.getRemote()), StandardCharsets.UTF_8);
+                    DatabaseConfigReq databaseConfigReq = DatabaseConfigReq.builder()
+                            .dbId(step.getDatabaseId())
+                            .database(item.getDatabase())
+                            .sql(sql)
+                            .build();
+                    logger.log("########## Execute sql file start. database:%s, sqlFileName:%s", item.getDatabase(), sqlFileName);
+                    DatabaseConfigApplyResp resp = client.databaseConfigApply(databaseConfigReq);
+                    logger.log(false, "Database URL:%s", resp.getDatabase());
+                    for (DatabaseConfigApplyResp.SqlResult sqlResult : resp.getResult()) {
+                        logger.log(false, "%s", sqlResult.getSql());
+                        logger.log(false, "Affected row count: %s\n", sqlResult.getRowcount().toString());
+                    }
+                    logger.log("========== Execute sql file end.");
+                }
+            }
+            return Collections.emptyMap();
         }
     }
 

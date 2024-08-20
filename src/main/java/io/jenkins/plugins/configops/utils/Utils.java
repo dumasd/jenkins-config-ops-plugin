@@ -1,6 +1,9 @@
 package io.jenkins.plugins.configops.utils;
 
 import java.io.File;
+import java.util.Collection;
+
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author Bruce.Wu
@@ -23,6 +26,18 @@ public class Utils {
             return name.substring(idx + 1);
         } else {
             return null;
+        }
+    }
+
+    public static void requireNotBlank(String s, String message) {
+        if (StringUtils.isBlank(s)) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
+    public static <T> void requireNotEmpty(Collection<T> coll, String message) {
+        if (coll == null || coll.isEmpty()) {
+            throw new IllegalArgumentException(message);
         }
     }
 }

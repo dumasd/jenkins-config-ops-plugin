@@ -8,7 +8,6 @@
     <div name="parameter">
         <input type="hidden" name="name" value="${h.escape(it.name)}"/>
 
-        <f:checkbox title="Show Preview" field="hello" default="true" name="showPreview"/>
         <div name="value">
             <table class="jenkins-table">
                 <thead>
@@ -16,10 +15,8 @@
                         <th scope="col">
                             <input id="selectAll" name="checkAll" type="checkbox"/>
                         </th>
-                        <th scope="col">Namespace</th>
-                        <th scope="col">Group</th>
-                        <th scope="col">DataId</th>
-                        <th scope="col">Version</th>
+                        <th scope="col">Database</th>
+                        <th scope="col">SQL File</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -29,27 +26,17 @@
                                 <input name="check" class="row-checkbox" type="checkbox"/>
                             </td>
                             <td>
-                                <input type="hidden" name="namespace" value="${item.namespace}"/>
-                                ${item.namespace}
+                                <input type="hidden" name="database" value="${item.database}"/>
+                                ${item.database}
                             </td>
                             <td>
-                                <input type="hidden" name="group" value="${item.group}"/>
-                                ${item.group}
-                            </td>
-                            <td>
-                                <input type="hidden" name="dataId" value="${item.dataId}"/>
-                                ${item.dataId}
-                            </td>
-                            <td>
-                                <j:if test="${item.versions.size() > 0}">
-                                    <select id="version" name="version">
-                                        <j:forEach var="v" items="${item.versions}">
-                                            <option value="${v}">
-                                                ${v}
-                                            </option>
-                                        </j:forEach>
-                                    </select>
-                                </j:if>
+                                <select name="sqlFileName">
+                                    <j:forEach var="v" items="${item.sqlFileNames}">
+                                        <option value="${v}">
+                                            ${v}
+                                        </option>
+                                    </j:forEach>
+                                </select>
                             </td>
                         </tr>
                     </j:forEach>
@@ -57,10 +44,6 @@
             </table>
         </div>
     </div>
-
-
-    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/js/nacos-config.js" type="text/javascript"
-            charset="utf-8"/>
 
     <script type="text/javascript">
         <![CDATA[
@@ -105,33 +88,6 @@
                     selectAllCheckbox.checked = allChecked;
                 });
             });
-            /*const namespaceGroupSel = document.getElementById("namespaceGroup");
-            const dataIdSel = document.getElementById("dataId");
-            const versionSel = document.getElementById("version");
-
-            namespaceGroupSel.disabled = true;
-            dataIdSel.disabled = true;
-            versionSel.disabled = true;
-            requestAndFillNacosOptions(namespaceGroupSel, BASE_URL + "/fillNamespaceGroupItems", {
-                'json': jsonChoices
-            }, () => {
-                updateDataIdItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, jsonChoices)
-            })
-
-            namespaceGroupSel.addEventListener("change", function () {
-                namespaceGroupSel.disabled = true;
-                dataIdSel.disabled = true;
-                versionSel.disabled = true;
-                updateDataIdItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, jsonChoices)
-            })
-
-            dataIdSel.addEventListener("change", function () {
-                namespaceGroupSel.disabled = true;
-                dataIdSel.disabled = true;
-                versionSel.disabled = true;
-                updateVersionItems(namespaceGroupSel, dataIdSel, versionSel, BASE_URL, jsonChoices)
-            })*/
-
         })
         ]]>
     </script>

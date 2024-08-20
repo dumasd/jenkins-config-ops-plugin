@@ -1,12 +1,11 @@
 package io.jenkins.plugins.configops.model.resp;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.annotation.JSONField;
+import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
 import javax.servlet.ServletException;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,25 +15,22 @@ import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.StaplerResponse;
 import org.kohsuke.stapler.export.Flavor;
 
+/**
+ * @author Bruce.Wu
+ * @date 2024-08-19
+ */
 @Setter
-@ToString
 @Getter
-public class NacosConfigModifyPreviewResp implements Serializable, HttpResponse {
-    private static final long serialVersionUID = 1L;
-    /**
-     * 内容格式
-     */
-    private String format;
-    /**
-     * 当前内容
-     */
-    private String content;
+@ToString
+public class ListNacosConfigModifyPreviewResp implements Serializable, HttpResponse {
 
-    /**
-     * 修改后的值
-     */
-    @JSONField(name = "next_content")
-    private String nextContent;
+    private static final long serialVersionUID = 1L;
+
+    private List<NacosConfigModifyDTO> values;
+
+    public ListNacosConfigModifyPreviewResp(List<NacosConfigModifyDTO> values) {
+        this.values = values;
+    }
 
     @Override
     public void generateResponse(StaplerRequest req, StaplerResponse rsp, Object node)
@@ -45,13 +41,5 @@ public class NacosConfigModifyPreviewResp implements Serializable, HttpResponse 
             os.write(bytes);
             os.flush();
         }
-    }
-
-    public Map<String, Object> toMap() {
-        Map<String, Object> map = new LinkedHashMap<>();
-        map.put("format", format);
-        map.put("content", content);
-        map.put("nextContent", nextContent);
-        return map;
     }
 }

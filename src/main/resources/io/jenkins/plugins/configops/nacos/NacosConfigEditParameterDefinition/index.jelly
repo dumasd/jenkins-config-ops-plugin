@@ -3,70 +3,126 @@
          xmlns:t="/lib/hudson" xmlns:f="/lib/form">
     <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
           type="text/css"/>
-    <div>
-        <div class="descriptions_item_container">
-            <span class="descriptions_item_label">
-                <strong>Namespace/Group:</strong>
-            </span>
-            <span>${it.namespaceGroup}</span>
-        </div>
-        <div class="descriptions_item_container">
-            <span class="descriptions_item_label">
-                <strong>Data ID:</strong>
-            </span>
-            <span>${it.dataId}</span>
-        </div>
-    </div>
-    <div name="parameter">
+
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/lib/codemirror.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/addon/merge/merge.css"/>
+
+    <div name="parameter" id="nacosConfigEditMain">
         <input type="hidden" name="name" value="${h.escape(it.name)}"/>
-        <input id="contentInput" name="content" type="hidden" value="${it.content}"/>
-        <input id="nextContentInput" name="nextContent" type="hidden" value="${it.nextContent}"/>
+        <div name="value" id="nacosConfigEditPanes">
+            <j:forEach items="${it.getItems()}" var="item" varStatus="status">
+                <l:tabPane title="${item.namespace}/${item.group}/${item.dataId}">
+                    <div name="${status.index}">
+                        <input type="hidden" name="namespace" value="${item.namespace}"/>
+                        <input type="hidden" name="group" value="${item.group}"/>
+                        <input type="hidden" name="dataId" value="${item.dataId}"/>
+                        <input id="nacosConfigFormatInput-${status.index}" type="hidden" name="format"
+                               value="${item.format}"/>
+                        <input id="nacosConfigCurrentInput-${status.index}" type="hidden" name="content"
+                               value="${item.content}"/>
+                        <input id="nacosConfigNextInput-${status.index}" type="hidden" name="nextContent"
+                               value="${item.nextContent}"/>
+                    </div>
+                </l:tabPane>
+            </j:forEach>
+            <div class="code-editor" id="nacosConfigEditorContainer">
+
+            </div>
+        </div>
     </div>
 
-    <div class="code-editor">
-        <p>
-            <em>Current Content:</em>
-        </p>
-        <div id="current-editor" class="code-item">
-        </div>
-        <p>
-            <em>Next Content:</em>
-        </p>
-        <div id="next-editor" class="code-item">
-        </div>
-    </div>
-
-    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/ace-builds/src-noconflict/ace.js" type="text/javascript"
-            charset="utf-8"/>
+    <!--    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/ace-builds/src-noconflict/ace.js" type="text/javascript"-->
+    <!--            charset="utf-8"/>-->
+    <script src="https://unpkg.com/diff-match-patch@1.0.5/index.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/lib/codemirror.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/addon/merge/merge.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/yaml/yaml.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/properties/properties.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/json/json.js"/>
 
     <script type="text/javascript">
         <![CDATA[
-        const format = "${it.format}"
-
         document.addEventListener('DOMContentLoaded', function () {
 
-            const contentInput = document.getElementById('contentInput')
-            const nextContentInput = document.getElementById('nextContentInput')
+            const tabPanes = document.querySelectorAll(".jenkins-tab-pane");
+            const tabPanesDiv = document.querySelector("#nacosConfigEditPanes");
+            const content = document.querySelector("#nacosConfigEditMain");
 
-            var current_editor = ace.edit("current-editor", {
-                showGutter: true
+            // Hide tab panes
+            tabPanes.forEach(tabPane => {
+                tabPane.style.display = "none";
             });
-            current_editor.setTheme("ace/theme/monokai");
-            current_editor.session.setMode("ace/mode/" + format);
-            current_editor.setValue(contentInput.value)
 
-            var next_editor = ace.edit("next-editor", {
-                showGutter: true
-            });
-            next_editor.setTheme("ace/theme/monokai");
-            next_editor.session.setMode("ace/mode/" + format);
-            next_editor.setValue(nextContentInput.value)
+            // Show the first
+            tabPanes[0].style.display = "block";
+            const tabBar = document.createElement("div");
+            tabBar.className = "tabBar";
 
-            next_editor.session.on('change', function (delta) {
-                // delta.start, delta.end, delta.lines, delta.action
-                // 监听
-                nextContentInput.value = next_editor.getValue()
+            const editor = CodeMirror.MergeView(document.getElementById('nacosConfigEditorContainer'), {
+                value: '',
+                orig: '',
+                lineNumbers: true,
+                mode: 'yaml',
+                styleActiveLine: true,
+                highlightDifferences: true,
+                connect: "align"
             });
+
+            editor.edit.on('change', function (cm, changeObj) {
+                if (changeObj.origin === 'setValue') {
+                    cm.clearHistory();
+                    return;
+                }
+                const nextInput = document.querySelector("#nacosConfigNextInput-" + cm.currentIndex);
+                nextInput.value = cm.getValue();
+            });
+
+            // Add tabs for each tab pane
+            tabPanes.forEach((tabPane, index) => {
+                const tabPaneTitle = tabPane.querySelector(".jenkins-tab-pane__title");
+                tabPaneTitle.style.display = "none";
+                const tab = document.createElement("div");
+                tab.className = "tab";
+
+                const formatInput = document.querySelector("#nacosConfigFormatInput-" + index);
+                const currentInput = document.querySelector("#nacosConfigCurrentInput-" + index);
+                const nextInput = document.querySelector("#nacosConfigNextInput-" + index);
+                if (index === 0) {
+                    tab.classList.add("active");
+
+                    editor.edit.currentIndex = 0;
+                    editor.edit.setValue(nextInput.value)
+                    editor.rightOriginal().setValue(currentInput.value);
+
+                    editor.edit.setOption('mode', formatInput.value);
+                    editor.rightOriginal().setOption('mode', formatInput.value);
+                }
+
+                tab.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll(".tab").forEach(tab => {
+                        tab.classList.remove("active");
+                    });
+                    tab.classList.add("active");
+                    tabPanes.forEach(tabPane => {
+                        tabPane.style.display = "none";
+                    });
+                    tabPanes[index].style.display = "block";
+                    editor.edit.currentIndex = index;
+                    editor.edit.setValue(nextInput.value)
+                    editor.rightOriginal().setValue(currentInput.value);
+
+                    editor.edit.setOption('mode', formatInput.value);
+                    editor.rightOriginal().setOption('mode', formatInput.value);
+                });
+
+                const tabLink = document.createElement("a");
+                tabLink.setAttribute("href", "#");
+                tabLink.innerText = tabPaneTitle.textContent;
+                tab.append(tabLink);
+                tabBar.append(tab);
+            });
+            content.insertBefore(tabBar, tabPanesDiv);
 
         })
         ]]>

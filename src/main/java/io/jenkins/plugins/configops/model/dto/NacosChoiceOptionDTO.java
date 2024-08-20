@@ -1,19 +1,18 @@
 package io.jenkins.plugins.configops.model.dto;
 
 import java.io.Serializable;
-import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
 /**
  * @author Bruce.Wu
- * @date 2024-08-10
+ * @date 2024-08-16
  */
-@Getter
 @Setter
+@Getter
 @ToString
-public class NacosFileDTO implements Serializable {
+public class NacosChoiceOptionDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -22,18 +21,17 @@ public class NacosFileDTO implements Serializable {
     private String group;
 
     private String dataId;
+    /**
+     * 可为空
+     */
+    private String version;
 
-    private List<String> versions;
-
-    public NacosFileDTO() {}
-
-    public NacosFileDTO(String namespace, String group, String dataId) {
+    public NacosChoiceOptionDTO(String namespace, String group, String dataId, String version) {
         this.namespace = namespace;
         this.group = group;
         this.dataId = dataId;
+        this.version = version;
     }
 
-    public String spliceNamespaceGroup() {
-        return namespace + "/" + group;
-    }
+    public NacosChoiceOptionDTO() {}
 }
