@@ -19,7 +19,7 @@
                         <th scope="col">Namespace</th>
                         <th scope="col">Group</th>
                         <th scope="col">DataId</th>
-                        <th scope="col">Version</th>
+                        <th scope="col">Patch Version</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -41,15 +41,13 @@
                                 ${item.dataId}
                             </td>
                             <td>
-                                <j:if test="${item.versions.size() > 0}">
-                                    <select id="version" name="version">
-                                        <j:forEach var="v" items="${item.versions}">
-                                            <option value="${v}">
-                                                ${v}
-                                            </option>
-                                        </j:forEach>
-                                    </select>
-                                </j:if>
+                                <select id="version" name="version">
+                                    <j:forEach var="v" items="${item.fillVersionItems().values()}">
+                                        <option value="${v.value}">
+                                            ${v.name}
+                                        </option>
+                                    </j:forEach>
+                                </select>
                             </td>
                         </tr>
                     </j:forEach>

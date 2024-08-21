@@ -11,6 +11,7 @@ import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.model.resp.ListNacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
+import io.jenkins.plugins.configops.utils.Constants;
 import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -47,10 +48,10 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
 
     @DataBoundConstructor
     public NacosConfigModifyPreviewStep(
-            String workingDir, String nacosId, String toolUrl, List<NacosChoiceOptionDTO> items) {
+            String workingDir, @NonNull String nacosId, String toolUrl, @NonNull List<NacosChoiceOptionDTO> items) {
         this.workingDir = workingDir;
         this.nacosId = nacosId;
-        this.toolUrl = toolUrl;
+        this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.items = items;
     }
 

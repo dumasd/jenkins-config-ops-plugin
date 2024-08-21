@@ -1,5 +1,6 @@
 package io.jenkins.plugins.configops.model.dto;
 
+import hudson.util.ListBoxModel;
 import java.io.Serializable;
 import java.util.List;
 import lombok.Getter;
@@ -39,5 +40,14 @@ public class NacosConfigFileDTO implements Serializable {
 
     public String spliceNamespaceGroupDataId() {
         return String.format("%s/%s/%s", namespace, group, dataId);
+    }
+
+    public ListBoxModel fillVersionItems() {
+        ListBoxModel lbm = new ListBoxModel();
+        lbm.add("Not selected", "");
+        if (versions != null && !versions.isEmpty()) {
+            versions.forEach(lbm::add);
+        }
+        return lbm;
     }
 }

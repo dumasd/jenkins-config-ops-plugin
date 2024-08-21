@@ -7,11 +7,11 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.dto.NacosConfigFileDTO;
 import io.jenkins.plugins.configops.utils.FileFileFilter;
+import io.jenkins.plugins.configops.utils.Utils;
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -90,7 +90,7 @@ public class NacosConfigsGetterStep extends Step implements Serializable {
                             String[] ss = StringUtils.split(path, File.separatorChar);
                             return ss[ss.length - 2];
                         })
-                        .sorted(Comparator.reverseOrder())
+                        .sorted((o1, o2) -> Utils.compareVersion(o2, o1))
                         .collect(Collectors.toList());
                 file.setVersions(vs);
             }

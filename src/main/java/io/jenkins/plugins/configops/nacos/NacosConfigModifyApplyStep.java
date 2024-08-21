@@ -8,6 +8,7 @@ import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
+import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
 import java.io.Serializable;
@@ -19,6 +20,7 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
@@ -46,9 +48,10 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
     private final List<NacosConfigModifyDTO> items;
 
     @DataBoundConstructor
-    public NacosConfigModifyApplyStep(String nacosId, String toolUrl, @NonNull List<NacosConfigModifyDTO> items) {
+    public NacosConfigModifyApplyStep(
+            @NonNull String nacosId, String toolUrl, @NonNull List<NacosConfigModifyDTO> items) {
         this.nacosId = nacosId;
-        this.toolUrl = toolUrl;
+        this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.items = items;
     }
 

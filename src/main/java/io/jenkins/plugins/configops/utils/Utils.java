@@ -1,5 +1,6 @@
 package io.jenkins.plugins.configops.utils;
 
+import hudson.util.VersionNumber;
 import java.io.File;
 import java.util.Collection;
 import org.apache.commons.lang.StringUtils;
@@ -38,5 +39,22 @@ public class Utils {
         if (coll == null || coll.isEmpty()) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    /**
+     * 版本号比较
+     *
+     * @param v1
+     * @param v2
+     * @return 0代表相等，1代表左边大，-1代表右边大
+     * Utils.compareVersion("1.0.358_20180820090554","1.0.358_20180820090553")=1
+     */
+    public static int compareVersion(String v1, String v2) {
+        if (v1.equals(v2)) {
+            return 0;
+        }
+        VersionNumber vn1 = new VersionNumber(v1);
+        VersionNumber vn2 = new VersionNumber(v2);
+        return vn1.compareTo(vn2);
     }
 }

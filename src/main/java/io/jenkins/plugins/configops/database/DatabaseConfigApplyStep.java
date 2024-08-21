@@ -9,6 +9,7 @@ import io.jenkins.plugins.configops.model.dto.DatabaseConfigOptionDTO;
 import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
+import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import java.io.File;
 import java.io.Serializable;
@@ -44,7 +45,7 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
     /**
      * Config Ops工具地址
      */
-    private final String toolUrl;
+    private String toolUrl;
 
     /**
      * 目录
@@ -56,11 +57,11 @@ public class DatabaseConfigApplyStep extends Step implements Serializable {
     @DataBoundConstructor
     public DatabaseConfigApplyStep(
             @NonNull String databaseId,
-            @NonNull String toolUrl,
+            String toolUrl,
             String workingDir,
             @NonNull List<DatabaseConfigOptionDTO> items) {
         this.databaseId = databaseId;
-        this.toolUrl = toolUrl;
+        this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.workingDir = workingDir;
         this.items = items;
     }

@@ -7,9 +7,9 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.dto.DatabaseConfigOptionDTO;
 import io.jenkins.plugins.configops.utils.SqlFileFilter;
+import io.jenkins.plugins.configops.utils.Utils;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -90,7 +90,7 @@ public class DatabaseConfigGetterStep extends Step implements Serializable {
                     dto.setDatabase(databaseDir.getName());
                     dto.setSqlFileNames(sqlFiles.stream()
                             .map(FilePath::getName)
-                            .sorted(Comparator.reverseOrder())
+                            .sorted((o1, o2) -> Utils.compareVersion(o2, o1))
                             .collect(Collectors.toList()));
                     result.add(dto);
                 }
