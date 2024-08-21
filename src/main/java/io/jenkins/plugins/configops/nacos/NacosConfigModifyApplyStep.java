@@ -116,6 +116,7 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
                         .group(item.getGroup())
                         .dataId(item.getDataId())
                         .content(item.getNextContent())
+                        .format(item.getFormat())
                         .build();
                 String result = client.nacosConfigModifyApply(nacosConfigReq);
             }

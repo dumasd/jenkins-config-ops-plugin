@@ -38,4 +38,6 @@ public class NacosConfigReq implements Serializable {
 
     @JSONField(name = "content")
     private String content;
+
+    private String format;
 }

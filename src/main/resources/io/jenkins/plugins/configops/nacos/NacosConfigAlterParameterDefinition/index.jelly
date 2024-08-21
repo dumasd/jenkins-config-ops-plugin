@@ -1,0 +1,242 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+    <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
+          type="text/css"/>
+
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/lib/codemirror.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/addon/merge/merge.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/addon/lint/lint.css"/>
+
+    <div style="display: none;">
+        <j:forEach items="${it.getItems()}" var="item" varStatus="status">
+            <input id="nacosConfigCurrentInput-${item.id}" type="hidden" value="${item.content}" disabled="disabled"/>
+            <input id="nacosConfigCurrentType-${item.id}" type="hidden" value="${item.type}" disabled="disabled"/>
+        </j:forEach>
+    </div>
+
+    <div>
+        <select multiple="multiple" size="6"
+                onchange="updateSelectedNacosConfigs(this)">
+            <j:forEach items="${it.getItems()}" var="item" varStatus="status">
+                <f:option value="${item.id}">${item.fullName()}</f:option>
+            </j:forEach>
+        </select>
+    </div>
+
+    <div name="parameter" id="nacosConfigEditMain">
+        <input type="hidden" name="name" value="${h.escape(it.name)}"/>
+        <div id="selectedNacosConfigsTab" class="tabBar">
+        </div>
+        <div name="value" id="nacosConfigEditPanes">
+        </div>
+        <div class="operate-form">
+            <input id="patchBtn" type="button" value="Patch" class="form-item-1"/>
+            <input id="deleteBtn" type="button" value="Delete" class="form-item-1"/>
+        </div>
+        <f:entry title="Patch Content" class="form-item-70">
+            <div class="code-editor" id="nacosConfigPatchEditorContainer">
+            </div>
+        </f:entry>
+
+        <f:entry title="Change Comparison" class="form-item-100">
+            <div class="code-editor" id="nacosConfigMergeEditorContainer">
+            </div>
+        </f:entry>
+    </div>
+
+    <script src="https://unpkg.com/diff-match-patch@1.0.5/index.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/lib/codemirror.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/addon/merge/merge.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/yaml/yaml.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/properties/properties.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/json/json.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/mode/xml/xml.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/addon/lint/lint.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/addon/lint/json-lint.js"/>
+    <script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.17/addon/lint/yaml-lint.js"/>
+
+    <script type="text/javascript">
+        <![CDATA[
+        var BASE_URL = '${rootURL}/descriptorByName/io.jenkins.plugins.configops.nacos.NacosConfigAlterParameterDefinition'
+
+        function updateSelectedNacosConfigs(select) {
+            const tabBar = document.querySelector("#selectedNacosConfigsTab");
+            const tabPanesDiv = document.querySelector("#nacosConfigEditPanes");
+            const optionValues = Array.from(select.selectedOptions).map(e => e.value)
+            const optionNames = Array.from(select.selectedOptions).map(e => e.innerText)
+            tabBar.innerHTML = ''
+            optionValues.forEach((option, index) => {
+                const tab = document.createElement("div");
+                tab.className = "tab";
+                if (index === 0) {
+                    tab.classList.add("active");
+                }
+                // 创建监听
+                tab.addEventListener("click", function (e) {
+                    e.preventDefault();
+                    document.querySelectorAll(".tab").forEach(tab => {
+                        tab.classList.remove("active");
+                    });
+                    tab.classList.add("active");
+
+                    const formatInput = document.querySelector("#nacosConfigCurrentType-" + option);
+                    const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
+                    const nextInput = document.querySelector("#nacosConfigNextInput-" + option);
+                    editor.edit.currentId = option;
+                    editor.edit.setValue(nextInput.value)
+                    editor.rightOriginal().setValue(currentInput.value);
+
+                    editor.edit.setOption('mode', formatInput.value);
+                    editor.rightOriginal().setOption('mode', formatInput.value);
+
+                    patchEditor.setValue("");
+                    patchEditor.setOption('mode', formatInput.value);
+                });
+
+                const tabLink = document.createElement("a");
+                tabLink.setAttribute("href", "#");
+                tabLink.innerText = optionNames[index];
+                tab.append(tabLink);
+                tabBar.append(tab);
+            });
+
+            let optionValuesCopy = optionValues.slice();
+            const children = tabPanesDiv.children;
+            let needRemoveChildren = [];
+            if (children && children.length > 0) {
+                for (let i = 0; i < children.length; i++) {
+                    const ele = children[i];
+                    const check = ele.firstElementChild;
+                    check.value = false;
+                    for (let j = 0; j < optionValuesCopy.length; j++) {
+                        const name = ele.getAttribute('name');
+                        if (optionValuesCopy[j] === name) {
+                            optionValuesCopy.splice(j, 1);
+                            check.value = true;
+                            break;
+                        }
+                    }
+                    if (check.value === false) {
+                        needRemoveChildren.push(ele);
+                    }
+                }
+            }
+            needRemoveChildren.forEach(e => {
+                tabPanesDiv.removeChild(e);
+            });
+
+            // 余下的创建并追加到tabPanesDiv中
+            for (let i = 0; i < optionValuesCopy.length; i++) {
+                const option = optionValuesCopy[i];
+                const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
+                const div = document.createElement("div");
+                div.setAttribute("name", option);
+
+                div.style.display = "none";
+                const checkInput = document.createElement("input");
+                checkInput.type = "hidden";
+                checkInput.value = "true";
+                checkInput.name = "checked";
+
+                const nextContentInput = document.createElement("input");
+                nextContentInput.type = "hidden";
+                nextContentInput.value = currentInput.value;
+                nextContentInput.name = "content";
+                nextContentInput.id = "nacosConfigNextInput-" + option;
+
+                div.appendChild(checkInput);
+                div.appendChild(nextContentInput);
+                tabPanesDiv.appendChild(div);
+            }
+
+            if (optionValues.length > 0) {
+                editor.edit.currentId = optionValues[0];
+                const formatInput = document.querySelector("#nacosConfigCurrentType-" + optionValues[0]);
+                const currentInput = document.querySelector("#nacosConfigCurrentInput-" + optionValues[0]);
+                const nextInput = document.querySelector("#nacosConfigNextInput-" + optionValues[0]);
+
+                editor.edit.setValue(nextInput.value)
+                editor.rightOriginal().setValue(currentInput.value);
+
+                editor.edit.setOption('mode', formatInput.value);
+                editor.rightOriginal().setOption('mode', formatInput.value);
+
+                patchEditor.setValue("");
+                patchEditor.setOption('mode', formatInput.value);
+            }
+        }
+
+        const editor = CodeMirror.MergeView(document.getElementById('nacosConfigMergeEditorContainer'), {
+            value: '',
+            orig: '',
+            lineNumbers: true,
+            gutters: ["CodeMirror-lint-markers"],
+            lint: true,
+            mode: 'yaml',
+            styleActiveLine: true,
+            highlightDifferences: true,
+            connect: "align"
+        });
+
+        editor.edit.on('change', function (cm, changeObj) {
+            if (changeObj.origin === 'setValue') {
+                cm.clearHistory();
+                return;
+            }
+            const nextInput = document.querySelector("#nacosConfigNextInput-" + cm.currentId);
+            nextInput.value = cm.getValue();
+        });
+
+        const patchEditor = CodeMirror(document.querySelector("#nacosConfigPatchEditorContainer"), {
+            value: '',
+            lineNumbers: true,
+            gutters: ["CodeMirror-lint-markers"],
+            lint: true,
+            mode: 'yaml',
+            styleActiveLine: true,
+            highlightDifferences: true,
+            connect: "align"
+        })
+
+        const patchBtn = document.getElementById("patchBtn");
+        const deleteBtn = document.getElementById("deleteBtn");
+
+        patchBtn.addEventListener("click", function () {
+            editNextContent("/patchContent");
+        });
+
+        deleteBtn.addEventListener("click", function () {
+            editNextContent("/deleteContent");
+        });
+
+        function editNextContent(path) {
+            const formatInput = document.querySelector("#nacosConfigCurrentType-" + editor.edit.currentId);
+            const format = formatInput.value;
+            const content = editor.edit.getValue();
+            const edit = patchEditor.getValue();
+            new Ajax.Request(BASE_URL + path, {
+                method: 'post',
+                parameters: {
+                    'format': format,
+                    'content': content,
+                    'edit': edit
+                },
+                onSuccess: function (response) {
+                    let data = response.responseText.evalJSON();
+                    editor.edit.setValue(data.next_content);
+                    const nextInput = document.querySelector("#nacosConfigNextInput-" + editor.edit.currentId);
+                    nextInput.value = data.next_content;
+                },
+                onFailure: function (response) {
+                    alert('Request failed: ' + response.statusText);
+                }
+            })
+        }
+
+
+        ]]>
+    </script>
+
+</j:jelly>

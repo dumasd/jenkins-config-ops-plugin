@@ -10,6 +10,13 @@
 
 }
 
+.form-item-100 {
+    max-width: 100%;
+}
+
+.form-item-70 {
+    max-width: 70%;
+}
 
 .operate-form {
     width: 100%;
