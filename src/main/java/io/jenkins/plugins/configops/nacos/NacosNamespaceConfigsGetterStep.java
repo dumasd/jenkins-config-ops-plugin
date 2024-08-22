@@ -6,8 +6,10 @@ import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
+import io.jenkins.plugins.configops.model.req.NacosGetConfigsReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
+import io.jenkins.plugins.configops.utils.Utils;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
@@ -31,13 +33,14 @@ public class NacosNamespaceConfigsGetterStep extends Step implements Serializabl
 
     private String toolUrl;
     private final String nacosId;
-    private final String namespace;
+    private final List<String> namespaces;
 
     @DataBoundConstructor
-    public NacosNamespaceConfigsGetterStep(String toolUrl, @NonNull String nacosId, @NonNull String namespace) {
+    public NacosNamespaceConfigsGetterStep(String toolUrl, @NonNull String nacosId, @NonNull List<String> namespaces) {
+        Utils.requireNotEmpty(namespaces, "Namespaces must not empty");
         this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.nacosId = nacosId;
-        this.namespace = namespace;
+        this.namespaces = namespaces;
     }
 
     @DataBoundSetter
@@ -65,7 +68,8 @@ public class NacosNamespaceConfigsGetterStep extends Step implements Serializabl
             //TaskListener taskListener = getContext().get(TaskListener.class);
             //Logger logger = new Logger("NacosNamespaceGetterStep", taskListener);
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
-            return client.getNacosConfigs(step.getNacosId(), step.getNamespace());
+            NacosGetConfigsReq req = new NacosGetConfigsReq(step.getNacosId(), step.getNamespaces());
+            return client.getNacosConfigs(req);
         }
     }
 

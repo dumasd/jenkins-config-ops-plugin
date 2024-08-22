@@ -23,6 +23,7 @@ import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.StaplerRequest;
 
+@Deprecated
 @Log
 @Setter
 @Getter
@@ -99,8 +100,8 @@ public class NacosConfigEditParameterDefinition extends ParameterDefinition {
         }
     }
 
-    @Extension
-    @Symbol("nacosConfigEdit")
+    //@Extension
+    //@Symbol("nacosConfigEdit")
     public static class DescriptorImpl extends ParameterDescriptor {
 
         public DescriptorImpl() {

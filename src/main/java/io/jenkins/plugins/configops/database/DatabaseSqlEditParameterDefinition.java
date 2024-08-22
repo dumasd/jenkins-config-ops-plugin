@@ -4,17 +4,19 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
-import io.jenkins.plugins.configops.model.dto.DatabaseConfigOptionDTO;
+import io.jenkins.plugins.configops.model.dto.DatabaseSqlDTO;
 import io.jenkins.plugins.configops.utils.Utils;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.extern.java.Log;
+import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
@@ -28,34 +30,33 @@ import org.kohsuke.stapler.StaplerRequest;
 @Setter
 @Getter
 @Log
-public class DatabaseConfigChoicesParameterDefinition extends ParameterDefinition {
+public class DatabaseSqlEditParameterDefinition extends ParameterDefinition {
 
-    private final List<DatabaseConfigOptionDTO> choices;
+    private final List<String> dbs;
 
     @DataBoundConstructor
-    public DatabaseConfigChoicesParameterDefinition(String name, @NonNull List<DatabaseConfigOptionDTO> choices) {
-        super(StringUtils.defaultIfBlank(name, "DATABASE_CHOICE"));
-        Utils.requireNotEmpty(choices, "Choices must not empty");
-        this.choices = choices;
+    public DatabaseSqlEditParameterDefinition(String name, @NonNull List<String> dbs) {
+        super(StringUtils.defaultIfBlank(name, "DATABASE_SQL"));
+        Utils.requireNotEmpty(dbs, "Choices must not empty");
+        this.dbs = dbs;
     }
 
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        //        log.log(Level.INFO, "Create value with jo. {0}", jo);
         JSONObject selectedValue = jo.getJSONObject("value");
-        List<DatabaseConfigOptionDTO> result = new ArrayList<>();
-        for (Object item : selectedValue.values()) {
-            if (item instanceof JSONObject) {
-                JSONObject itemObj = (JSONObject) item;
-                boolean checked = itemObj.getBoolean("check");
-                if (checked) {
-                    String database = itemObj.getString("database");
-                    String sqlFileName = itemObj.getString("sqlFileName");
-                    result.add(new DatabaseConfigOptionDTO(database, Collections.singletonList(sqlFileName)));
-                }
+        List<DatabaseSqlDTO> result = new ArrayList<>();
+        JSONArray dbNames = selectedValue.names();
+        for (int i = 0; i < dbNames.size(); i++) {
+            String db = dbNames.getString(i);
+            JSONObject item = selectedValue.getJSONObject(db);
+            boolean checked = item.getBoolean("checked");
+            if (checked) {
+                DatabaseSqlDTO dto = new DatabaseSqlDTO();
+                dto.setDatabase(db);
+                dto.setSql(item.getString("content"));
+                result.add(dto);
             }
         }
-        Utils.requireNotEmpty(result, "Not select database sql file");
         return new DatabaseConfigChoicesParameterValue(getName(), result);
     }
 
@@ -74,9 +75,9 @@ public class DatabaseConfigChoicesParameterDefinition extends ParameterDefinitio
     @ToString
     public static class DatabaseConfigChoicesParameterValue extends ParameterValue {
 
-        private final List<DatabaseConfigOptionDTO> choices;
+        private final List<DatabaseSqlDTO> choices;
 
-        public DatabaseConfigChoicesParameterValue(String name, List<DatabaseConfigOptionDTO> choices) {
+        public DatabaseConfigChoicesParameterValue(String name, List<DatabaseSqlDTO> choices) {
             super(name);
             this.choices = choices;
         }
@@ -90,17 +91,17 @@ public class DatabaseConfigChoicesParameterDefinition extends ParameterDefinitio
     }
 
     @Extension
-    @Symbol("databaseConfigChoices")
+    @Symbol("databaseSqlEdit")
     public static class DescriptorImpl extends ParameterDescriptor {
 
         public DescriptorImpl() {
-            super(DatabaseConfigChoicesParameterDefinition.class);
+            super(DatabaseSqlEditParameterDefinition.class);
         }
 
         @NonNull
         @Override
         public String getDisplayName() {
-            return "Database Config Choices Parameter";
+            return "Database SQL Edit Parameter";
         }
     }
 }

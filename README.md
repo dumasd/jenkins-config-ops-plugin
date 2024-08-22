@@ -12,136 +12,88 @@
 
 ### Nacos 配置变更
 
-Nacos 配置的目录结构需要按照下面的模版存储，存储形式可以是Git、制品库等。
-
-```
-Base Dir/                       # Base Directory
-    namespace-id1/                     # Nacos Namespace ID
-        group1/                       # Nacos Group
-            v0.0.1/                     # DataID 增量配置文件夹
-                config.properties  
-                config.yaml
-            v0.0.2/
-                config.yaml           
-            config.properties           # DataID 全量配置
-            config.yaml
-        group2/
-            v0.0.1/
-                messages.properties
-                config.yaml
-            v0.0.2/
-                config.yaml  
-            messages.properties
-            config.yaml
-    namespace-id2/
-        group3/
-            v1.0.0/
-                messages.properties
-                config.yaml
-            v1.0.1/
-                config.yaml          
-            application.properties
-            application.yaml
-        group4/
-            v1.0.0/
-                application.properties
-                application.yaml
-            v1.0.1/
-                application.yaml          
-            application.properties
-            application.yaml
-```
-1. nacosConfigGet (Jenkins Step) 读取Nacos配置文件
+1. nacosConfigsGet (Jenkins Step) 获取指定namespace列表下所有的配置
 
 ``` groovy
-def nacosFiles = nacosConfigGet(workingDir: 'script/nacos')
+def nacosConfigs = nacosConfigsGet(toolUrl: 'http://127.0.0.1:5000', nacosId: 'default', namespaces: ['vod-mfc', 'blue'])    
 ```
 
-2. nacosConfigChoices (Jenkins Parameter) 选择需要执行的Nacos配置
+#### 输入参数
+
+| 参数         | 类似             | 参数解释                  | 必填                            |
+|------------|----------------|-----------------------|-------------------------------|
+| toolUrl    | Config Ops URL | Config Ops 服务地址       | N，不填默认为 http://127.0.0.1:5000 |
+| nacosId    | Nacos ID       | Config Ops Nacos 配置ID | Y                             |
+| namespaces | Namespaces     | Nacos 命名空间ID列表        | Y                             |
+
+#### 输出参数
+
+| 参数        | 类型       | 参数解释         |
+|-----------|----------|--------------|
+|           | object[] | 配置列表         |
+| - id      | string   | 配置ID         |
+| - dataId  | string   | Data ID      |
+| - group   | string   | Group        |
+| - content | string   | 当前内容         |
+| - tenant  | string   | Namespace ID |
+| - type    | string   | 配置格式         |
+
+2. nacosConfigAlter (Jenkins Parameter) Nacos配置修改界面
 
 ```groovy
-// 弹出界面,选择要更改的nacos配置
-def choiceResult = input(message: 'Choice', parameters: [nacosConfigChoices(choices: nacosFiles)])
+// 传入上一步获取到的配置列表，弹出界面进行配置修改
+def alterResult = input(message: 'Nacos Config Edit', parameters: [nacosConfigAlter(items: nacosConfigs)])
 ```
 
-3. nacosConfigModifyPreview (Jenkins Step) Nacos配置修改预览
+![nacos_alter_view](images/nacos_alter_view.png)
 
-```
-// 获取修改预览
-def previewResult = nacosConfigModifyPreview(workingDir: 'script/nacos', nacosId: "${NACOS_ID}", toolUrl: "${CONFIG_OPS_URL}", items: choiceResult['values'])
-```
+#### 输入参数
 
-4. nacosConfigEdit (Jenkins Parameter) Nacos配置修改预览界面，配置可进一步修改
+| 参数    | 类似       | 参数解释      | 必填 |
+|-------|----------|-----------|----|
+| items | object[] | Nacos配置列表 | Y  |
 
-```groovy
-// 弹出界面，预览每个DataId修改前后的对比情况，还可以根据情况进一步修改
-def editResult = input(message: 'Preview Edit', parameters: [nacosConfigEdit(items: previewResult['values'])])
-```
+#### 输出参数
 
-5. nacosConfigModifyApply (Jenkins Step) Nacos配置修改应用
+| 参数            | 类型       | 参数解释         |
+|---------------|----------|--------------|
+| values        | object[] | 配置列表         |
+| - namespace   | string   | Namespace ID |
+| - dataId      | string   | Data ID      |
+| - group       | string   | Group        |
+| - format      | string   | 配置格式         |
+| - content     | string   | 当前内容         |
+| - nextContent | string   | 修改后内容        |
+
+3. nacosConfigModifyApply (Jenkins Step) 应用修改后的配置
 
 ``` groovy
-nacosConfigModifyApply(nacosId: "${NACOS_ID}", toolUrl: "${CONFIG_OPS_URL}", items: editResult['values'])
+nacosConfigModifyApply(toolUrl: 'http://127.0.0.1:5000', nacosId: 'default', items: alterResult['values'])
 ```
+
+#### 输入参数
+
+| 参数      | 类似             | 参数解释                  | 必填                            |
+|---------|----------------|-----------------------|-------------------------------|
+| toolUrl | Config Ops URL | Config Ops 服务地址       | N，不填默认为 http://127.0.0.1:5000 |
+| nacosId | Nacos ID       | Config Ops Nacos 配置ID | Y                             |
+| items   | object[]       | 上一步修改后的配置列表           | Y                             |
 
 完整示例
 
 ``` groovy
-import groovy.json.JsonSlurper
-
 pipeline {
-    agent any
-    
-    environment {
-        CONFIG_OPS_URL = 'http://127.0.0.1:5000'
-        gitUrl = 'https://github.com/thinkerwolf/jenkins-example.git'
-        gitCredential = 'git-cred'
-        NACOS_ID = 'default'
+    agent {
+        label 'test'
     }
-    
+
     stages {
-        stage('SCM checkout') {
-            steps {
-                checkout scmGit(
-                        branches: [[name: "*/main"]],
-                        extensions: [cloneOption(shallow: true)],
-                        userRemoteConfigs: [[credentialsId: gitCredential, url: gitUrl]]
-                )
-            }
-        }
-       
-        stage('Execute') {
+        stage('Hello') {
             steps {
                 script {
-                    def jsonOutput = groovy.json.JsonOutput
-                    
-                    // 浏览制品库nacos配置文件
-                    def nacosFiles = nacosConfigGet(workingDir: 'script/nacos')
-                    def nacosFilesJson = jsonOutput.toJson(nacosFiles)
-                    echo "${nacosFilesJson}"
-                    
-                    // 弹出界面选择要更改的nacos配置
-                    def choiceResult = input(message: 'Choice', parameters: [nacosConfigChoices(choices: nacosFiles)])
-                    def choiceResultJson = jsonOutput.toJson(choiceResult)
-                    echo "${choiceResultJson}"
-                    
-                    if (choiceResult['showPreview']) {
-                        // 获取修改预览
-                        def previewResult = nacosConfigModifyPreview(workingDir: 'script/nacos', nacosId: "${NACOS_ID}", toolUrl: "${CONFIG_OPS_URL}", items: choiceResult['values'])
-                        
-                        // 弹出预览界面
-                        def editResult = input(message: 'Preview Edit', parameters: [nacosConfigEdit(items: previewResult['values'])])
-                        
-                        // 修改配置
-                        nacosConfigModifyApply(nacosId: "${NACOS_ID}", toolUrl: "${CONFIG_OPS_URL}", items: editResult['values'])
-                    } else {
-                        // 获取修改预览
-                        def previewResult = nacosConfigModifyPreview(workingDir: 'script/nacos', nacosId: "${NACOS_ID}", toolUrl: "${CONFIG_OPS_URL}", items: choiceResult['values'])
-                        
-                        // 修改配置
-                        nacosConfigModifyApply(nacosId: "${NACOS_ID}", toolUrl: "${CONFIG_OPS_URL}", items: previewResult['values'])
-                    }
-                    
+                    def nacosConfigs = nacosConfigsGet(nacosId: 'default', namespaces: ['vod-mfc', 'blue'])    
+                    def alterResult = input(message: 'Nacos Config Edit', parameters: [nacosConfigAlter(items: nacosConfigs)])
+                    nacosConfigModifyApply(nacosId: "default", items: alterResult['values'])
                 }
             }
         }
@@ -149,78 +101,65 @@ pipeline {
 }
 
 ```
-
 
 ### 数据库脚本执行
 
-数据库SQL脚本的目录结构需要按照下面的模版存储，存储形式可以是Git、制品库等。
-```
-Base Dir/                 # Base Directory
-    database_name1/         # Database Name      
-        sql_v0.0.1.sql        # sql file
-        sql_v0.0.2.sql
-    database_name3/               
-        sql_v0.0.1.sql        
-        sql_v0.0.2.sql    
-```
-
-1. databaseConfigGet (Jenkins Step) 读取数据库脚本文件
+1. databaseSqlEdit (Jenkins Parameter) 数据库SQL脚本编辑界面
 
 ```groovy
-def files = databaseConfigGet(workingDir: "${WORKING_DIR}")
+def editResult = input(message: 'Choice', parameters: [databaseSqlEdit(dbs: ["hotkey_db", "czb_test"])])
 ```
 
-2. databaseConfigChoices (Jenkins Parameter) 选择需要执行的数据脚本
+#### 输入参数
+
+| 参数  | 类似       | 参数解释    | 必填 |
+|-----|----------|---------|----|
+| dbs | string[] | 数据库名称列表 | Y  |
+
+#### 输出参数
+
+| 参数         | 类型       | 参数解释    |
+|------------|----------|---------|
+| values     | object[] | 数据库脚本列表 |
+| - database | string   | 数据库名称   |
+| - sql      | string   | SQL脚本   |
+
+![sql_edit_view.png](images/sql_edit_view.png)
+
+2. databaseSqlApply (Jenkins Step) 执行数据库脚本
 
 ```groovy
-def choiceResult = input(message: 'Choice', parameters: [databaseConfigChoices(choices: files)])
+databaseSqlApply(toolUrl: 'http://127.0.0.1:5000', databaseId: 'vod-dev', items: editResult['values'])
 ```
 
-3. databaseConfigApply (Jenkins Step) 执行数据库脚本
+#### 输入参数
 
-```groovy
-databaseConfigApply(workingDir: "${WORKING_DIR}", databaseId: "${DATABASE_ID}", toolUrl: "${CONFIG_OPS_URL}", items: choiceResult['values'])
-```
+| 参数         | 类似             | 参数解释                     | 必填                            |
+|------------|----------------|--------------------------|-------------------------------|
+| toolUrl    | Config Ops URL | Config Ops 服务地址          | N，不填默认为 http://127.0.0.1:5000 |
+| databaseId | Nacos ID       | Config Ops Database 配置ID | Y                             |
+| items      | object[]       | 上一步的数据库脚本列表              | Y                             |
 
 完整示例
 
 ```groovy
 pipeline {
-    agent any
-    
-    environment {
-        CONFIG_OPS_URL = 'http://127.0.0.1:5000'
-        gitUrl = 'https://github.com/thinkerwolf/jenkins-example.git'
-        gitCredential = 'git-cred'
-        DATABASE_ID = 'vod-dev'
-        WORKING_DIR = 'script/mysql'
+    agent {
+        label 'test'
     }
-    
+
     stages {
-        stage('SCM checkout') {
-            steps {
-                checkout scmGit(
-                        branches: [[name: "*/main"]],
-                        extensions: [cloneOption(shallow: true)],
-                        userRemoteConfigs: [[credentialsId: gitCredential, url: gitUrl]]
-                )
-            }
-        }
-        
         stage('Execute') {
             steps {
                 script {
-                    def files = databaseConfigGet(workingDir: "${WORKING_DIR}", maxFileNum: 50)
-                    def choiceResult = input(message: 'Choice', parameters: [databaseConfigChoices(choices: files)])
-                    databaseConfigApply(workingDir: "${WORKING_DIR}", databaseId: "${DATABASE_ID}", toolUrl: "${CONFIG_OPS_URL}", items: choiceResult['values'])
+                    def editResult = input(message: 'Choice', parameters: [databaseSqlEdit(dbs: ["hotkey_db", "czb_test"])])
+                    databaseSqlApply(toolUrl: 'http://127.0.0.1:5000', databaseId: 'vod-dev', items: editResult['values'])
                 }
             }
         }
     }
 }
-
 ```
-
 
 ## LICENSE
 

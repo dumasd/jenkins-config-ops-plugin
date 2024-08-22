@@ -33,6 +33,7 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
+@Deprecated
 @Log
 @Setter
 @Getter
@@ -110,8 +111,8 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
         }
     }
 
-    @Extension
-    @Symbol("nacosConfigChoices")
+    //@Extension
+    //@Symbol("nacosConfigChoices")
     public static class DescriptorImpl extends ParameterDescriptor {
 
         public DescriptorImpl() {

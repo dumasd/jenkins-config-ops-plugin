@@ -22,7 +22,13 @@ public class NacosConfigDTO implements Serializable {
     private String type;
 
     public String fullName() {
-        return group + "/" + dataId;
+        String ns;
+        if (tenant == null || tenant.isBlank()) {
+            ns = "public";
+        } else {
+            ns = tenant;
+        }
+        return String.format("%s/%s/%s", ns, group, dataId);
     }
 
 }

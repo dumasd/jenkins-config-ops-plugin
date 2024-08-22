@@ -28,6 +28,7 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+@Deprecated
 @Setter
 @Getter
 public class NacosConfigsGetterStep extends Step implements Serializable {
@@ -98,7 +99,7 @@ public class NacosConfigsGetterStep extends Step implements Serializable {
         }
     }
 
-    @Extension
+    //@Extension
     public static class DescriptorImpl extends StepDescriptor {
         @Override
         public Set<? extends Class<?>> getRequiredContext() {

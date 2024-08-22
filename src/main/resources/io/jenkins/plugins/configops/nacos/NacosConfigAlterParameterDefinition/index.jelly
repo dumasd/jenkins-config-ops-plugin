@@ -16,7 +16,7 @@
     </div>
 
     <div>
-        <select multiple="multiple" size="6"
+        <select multiple="multiple" size="${it.getItemSelectSize()}"
                 onchange="updateSelectedNacosConfigs(this)">
             <j:forEach items="${it.getItems()}" var="item" varStatus="status">
                 <f:option value="${item.id}">${item.fullName()}</f:option>
@@ -24,7 +24,7 @@
         </select>
     </div>
 
-    <div name="parameter" id="nacosConfigEditMain">
+    <div name="parameter" id="nacosConfigEditMain" style="margin-top: 5px;">
         <input type="hidden" name="name" value="${h.escape(it.name)}"/>
         <div id="selectedNacosConfigsTab" class="tabBar">
         </div>
@@ -34,12 +34,12 @@
             <input id="patchBtn" type="button" value="Patch" class="form-item-1"/>
             <input id="deleteBtn" type="button" value="Delete" class="form-item-1"/>
         </div>
-        <f:entry title="Patch Content" class="form-item-70">
+        <f:entry title="Patch/Delete Content" class="form-item-70">
             <div class="code-editor" id="nacosConfigPatchEditorContainer">
             </div>
         </f:entry>
 
-        <f:entry title="Change Comparison" class="form-item-100">
+        <f:entry title="Change Comparison (After:Before)" class="form-item-100">
             <div class="code-editor" id="nacosConfigMergeEditorContainer">
             </div>
         </f:entry>
@@ -234,8 +234,6 @@
                 }
             })
         }
-
-
         ]]>
     </script>
 

@@ -7,6 +7,7 @@ import io.jenkins.plugins.configops.model.dto.NacosServerDTO;
 import io.jenkins.plugins.configops.model.req.CommonEditContentReq;
 import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
+import io.jenkins.plugins.configops.model.req.NacosGetConfigsReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 
@@ -73,12 +74,12 @@ public class ConfigOpsClient {
         }
     }
 
-    public List<NacosConfigDTO> getNacosConfigs(String nacosId, String namespace) throws Exception {
+    public List<NacosConfigDTO> getNacosConfigs(NacosGetConfigsReq req) throws Exception {
         try (CloseableHttpClient httpClient = HttpUtils.createClient()) {
             URIBuilder uriBuilder = new URIBuilder(url + "/nacos/v1/configs");
-            uriBuilder.addParameter("nacos_id", nacosId);
-            uriBuilder.addParameter("namespace", namespace);
-            HttpGet httpReq = new HttpGet(uriBuilder.build());
+            HttpPost httpReq = new HttpPost(uriBuilder.build());
+            HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
+            httpReq.setEntity(entity);
             return httpClient.execute(httpReq, new InnerHttpClientResponseHandler<>() {
                 @Override
                 public List<NacosConfigDTO> handleEntity(HttpEntity entity) throws IOException {
@@ -188,9 +189,7 @@ public class ConfigOpsClient {
                     msg = EntityUtils.toString(entity);
                 } catch (Exception ignored) {
                 }
-                if (StringUtils.isBlank(msg)) {
-                    msg = response.getReasonPhrase();
-                }
+                msg = StringUtils.defaultIfBlank(msg, response.getReasonPhrase());
                 EntityUtils.consume(entity);
                 throw new HttpResponseException(response.getCode(), msg);
             }

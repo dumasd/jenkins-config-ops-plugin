@@ -32,6 +32,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+@Deprecated
 @Setter
 @Getter
 @Log
@@ -118,7 +119,7 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
         }
     }
 
-    @Extension
+    //@Extension
     public static class DescriptorImpl extends StepDescriptor {
         @Override
         public Set<? extends Class<?>> getRequiredContext() {

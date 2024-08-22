@@ -55,6 +55,10 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
         });
     }
 
+    public int getItemSelectSize() {
+        return Math.min(10, items.size());
+    }
+
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
         // log.log(Level.INFO, "Create value with jo. {0}", jo);
@@ -112,11 +116,6 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
         public NacosConfigAlterParameterValue(String name, List<NacosConfigModifyDTO> result) {
             super(name);
             this.result = result;
-        }
-
-        @Override
-        public void buildEnvironment(Run<?, ?> build, EnvVars env) {
-            env.put(name, JSON.toJSONString(result));
         }
 
         @Override
