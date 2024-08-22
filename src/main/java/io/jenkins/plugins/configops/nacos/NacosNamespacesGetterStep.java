@@ -8,6 +8,10 @@ import hudson.model.TaskListener;
 import io.jenkins.plugins.configops.model.dto.NacosNamespaceDTO;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
@@ -18,11 +22,6 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Setter
 @Getter
@@ -48,8 +47,7 @@ public class NacosNamespacesGetterStep extends Step implements Serializable {
         return new StepExecutionImpl(context, this);
     }
 
-    public static class StepExecutionImpl
-            extends SynchronousNonBlockingStepExecution<List<NacosNamespaceDTO>> {
+    public static class StepExecutionImpl extends SynchronousNonBlockingStepExecution<List<NacosNamespaceDTO>> {
 
         private final NacosNamespacesGetterStep step;
 
@@ -60,8 +58,8 @@ public class NacosNamespacesGetterStep extends Step implements Serializable {
 
         @Override
         protected List<NacosNamespaceDTO> run() throws Exception {
-            //TaskListener taskListener = getContext().get(TaskListener.class);
-            //Logger logger = new Logger("NacosNamespaceGetterStep", taskListener);
+            // TaskListener taskListener = getContext().get(TaskListener.class);
+            // Logger logger = new Logger("NacosNamespaceGetterStep", taskListener);
             ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
             return client.getNacosNamespaces(step.getNacosId());
         }

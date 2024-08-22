@@ -11,14 +11,12 @@ import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -47,10 +45,7 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
     private final List<DatabaseSqlDTO> items;
 
     @DataBoundConstructor
-    public DatabaseSqlApplyStep(
-            @NonNull String databaseId,
-            String toolUrl,
-            @NonNull List<DatabaseSqlDTO> items) {
+    public DatabaseSqlApplyStep(@NonNull String databaseId, String toolUrl, @NonNull List<DatabaseSqlDTO> items) {
         this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.databaseId = databaseId;
         this.items = items;
@@ -61,8 +56,7 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
         return new StepExecutionImpl(context, this);
     }
 
-    public static class StepExecutionImpl
-            extends SynchronousNonBlockingStepExecution<Map<String, Object>> {
+    public static class StepExecutionImpl extends SynchronousNonBlockingStepExecution<Map<String, Object>> {
 
         private final DatabaseSqlApplyStep step;
 
@@ -82,9 +76,7 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
                         .database(item.getDatabase())
                         .sql(item.getSql())
                         .build();
-                logger.log(
-                        "########## Execute sql file start. database:%s",
-                        item.getDatabase());
+                logger.log("########## Execute sql file start. database:%s", item.getDatabase());
                 DatabaseConfigApplyResp resp = client.databaseConfigApply(databaseConfigReq);
                 logger.log(false, "Database URL:%s", resp.getDatabase());
                 for (DatabaseConfigApplyResp.SqlResult sqlResult : resp.getResult()) {

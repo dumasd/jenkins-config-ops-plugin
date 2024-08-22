@@ -1,12 +1,10 @@
 package io.jenkins.plugins.configops.nacos;
 
-import com.alibaba.fastjson2.JSON;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
-import hudson.model.Run;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
@@ -15,6 +13,11 @@ import io.jenkins.plugins.configops.model.req.CommonEditContentReq;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import jenkins.model.Jenkins;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,17 +32,10 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 @Log
 @Setter
 @Getter
 public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
-
 
     private List<NacosConfigDTO> items;
 
@@ -160,7 +156,8 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
         public NacosConfigModifyPreviewResp doPatchContent(
                 @QueryParameter("content") String content,
                 @QueryParameter("edit") String edit,
-                @QueryParameter("format") String format) throws Exception {
+                @QueryParameter("format") String format)
+                throws Exception {
             String jenkinsConfigOpsUrl = getJenkinsConfigOpsUrl();
             ConfigOpsClient client = new ConfigOpsClient(jenkinsConfigOpsUrl);
             CommonEditContentReq commonEditContentReq = CommonEditContentReq.builder()
@@ -175,7 +172,8 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
         public NacosConfigModifyPreviewResp doDeleteContent(
                 @QueryParameter("content") String content,
                 @QueryParameter("edit") String edit,
-                @QueryParameter("format") String format) throws Exception {
+                @QueryParameter("format") String format)
+                throws Exception {
             String jenkinsConfigOpsUrl = getJenkinsConfigOpsUrl();
             ConfigOpsClient client = new ConfigOpsClient(jenkinsConfigOpsUrl);
             CommonEditContentReq commonEditContentReq = CommonEditContentReq.builder()

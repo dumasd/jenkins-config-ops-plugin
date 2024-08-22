@@ -1,11 +1,10 @@
 package io.jenkins.plugins.configops.model.req;
 
+import java.io.Serializable;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.io.Serializable;
 
 /**
  * @author Bruce.Wu

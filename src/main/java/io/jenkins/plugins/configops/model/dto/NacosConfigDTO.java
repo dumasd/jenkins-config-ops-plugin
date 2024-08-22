@@ -1,10 +1,9 @@
 package io.jenkins.plugins.configops.model.dto;
 
+import java.io.Serializable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-
-import java.io.Serializable;
 
 @Setter
 @Getter
@@ -30,5 +29,4 @@ public class NacosConfigDTO implements Serializable {
         }
         return String.format("%s/%s/%s", ns, group, dataId);
     }
-
 }

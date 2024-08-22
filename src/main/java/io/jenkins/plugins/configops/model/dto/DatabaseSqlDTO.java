@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.model.dto;
 
 import java.io.Serializable;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,5 +18,4 @@ public class DatabaseSqlDTO implements Serializable {
     private String database;
 
     private String sql;
-
 }

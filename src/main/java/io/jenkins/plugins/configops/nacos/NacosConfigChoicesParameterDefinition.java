@@ -3,7 +3,6 @@ package io.jenkins.plugins.configops.nacos;
 import com.alibaba.fastjson2.JSON;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.EnvVars;
-import hudson.Extension;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import hudson.model.Run;
@@ -27,7 +26,6 @@ import lombok.extern.java.Log;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
-import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
@@ -111,8 +109,8 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
         }
     }
 
-    //@Extension
-    //@Symbol("nacosConfigChoices")
+    // @Extension
+    // @Symbol("nacosConfigChoices")
     public static class DescriptorImpl extends ParameterDescriptor {
 
         public DescriptorImpl() {

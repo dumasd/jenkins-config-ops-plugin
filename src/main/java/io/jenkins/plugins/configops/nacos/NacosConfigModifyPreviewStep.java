@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.nacos;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -119,7 +118,7 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
         }
     }
 
-    //@Extension
+    // @Extension
     public static class DescriptorImpl extends StepDescriptor {
         @Override
         public Set<? extends Class<?>> getRequiredContext() {

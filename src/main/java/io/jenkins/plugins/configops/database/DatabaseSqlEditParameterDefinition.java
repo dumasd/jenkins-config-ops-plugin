@@ -6,12 +6,10 @@ import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
 import io.jenkins.plugins.configops.model.dto.DatabaseSqlDTO;
 import io.jenkins.plugins.configops.utils.Utils;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
