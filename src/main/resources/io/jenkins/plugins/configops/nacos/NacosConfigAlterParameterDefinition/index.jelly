@@ -60,6 +60,7 @@
     <script type="text/javascript">
         <![CDATA[
         var BASE_URL = '${rootURL}/descriptorByName/io.jenkins.plugins.configops.nacos.NacosConfigAlterParameterDefinition'
+        console.log(crumb)
 
         function updateSelectedNacosConfigs(select) {
             const tabBar = document.querySelector("#selectedNacosConfigsTab");
@@ -212,28 +213,44 @@
             editNextContent("/deleteContent");
         });
 
+        function objectToUrlFormEncoded(parameters) {
+            // https://stackoverflow.com/a/37562814/4951015
+            // Code could be simplified if support for HTMLUnit is dropped
+            // body: new URLSearchParams(parameters) is enough then, but it doesn't work in HTMLUnit currently
+            let formBody = [];
+            for (const property in parameters) {
+                const encodedKey = encodeURIComponent(property);
+                const encodedValue = encodeURIComponent(parameters[property]);
+                formBody.push(encodedKey + "=" + encodedValue);
+            }
+            return formBody.join("&");
+        }
+
         function editNextContent(path) {
             const formatInput = document.querySelector("#nacosConfigCurrentType-" + editor.edit.currentId);
             const format = formatInput.value;
             const content = editor.edit.getValue();
             const edit = patchEditor.getValue();
-            new Ajax.Request(BASE_URL + path, {
-                method: 'post',
-                parameters: {
-                    'format': format,
-                    'content': content,
-                    'edit': edit
-                },
-                onSuccess: function (response) {
-                    let data = response.responseText.evalJSON();
-                    editor.edit.setValue(data.next_content);
-                    const nextInput = document.querySelector("#nacosConfigNextInput-" + editor.edit.currentId);
-                    nextInput.value = data.next_content;
-                },
-                onFailure: function (response) {
-                    alert('Request failed: ' + response.statusText);
-                }
+            fetch(BASE_URL + path, {
+                method: "post",
+                headers: crumb.wrap({
+                    "Content-Type": "application/x-www-form-urlencoded",
+                }),
+                body: objectToUrlFormEncoded({
+                    format: format,
+                    content: content,
+                    edit: edit
+                })
             })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        editor.edit.setValue(data.next_content);
+                        const nextInput = document.querySelector("#nacosConfigNextInput-" + editor.edit.currentId);
+                        nextInput.value = data.next_content;
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
         }
 
         document.addEventListener('DOMContentLoaded', function () {
