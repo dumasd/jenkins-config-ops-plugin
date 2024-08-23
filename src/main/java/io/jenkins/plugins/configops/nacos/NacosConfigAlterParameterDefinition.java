@@ -37,6 +37,8 @@ import org.kohsuke.stapler.bind.JavaScriptMethod;
 @Getter
 public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
 
+    private static final long serialVersionUID = -6182842383814244217L;
+
     private List<NacosConfigDTO> items;
 
     @DataBoundConstructor

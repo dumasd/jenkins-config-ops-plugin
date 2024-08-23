@@ -1,5 +1,7 @@
 package io.jenkins.plugins.configops.utils;
 
+import hudson.Launcher;
+import hudson.remoting.VirtualChannel;
 import hudson.util.VersionNumber;
 import java.io.File;
 import java.util.Collection;
@@ -39,6 +41,16 @@ public class Utils {
         if (coll == null || coll.isEmpty()) {
             throw new IllegalArgumentException(message);
         }
+    }
+
+    public static VirtualChannel getChannel(Launcher launcher) {
+        if (launcher == null) {
+            throw new IllegalArgumentException("Launcher is null");
+        }
+        if (launcher.getChannel() == null) {
+            throw new IllegalArgumentException("Launcher channel is null");
+        }
+        return launcher.getChannel();
     }
 
     /**

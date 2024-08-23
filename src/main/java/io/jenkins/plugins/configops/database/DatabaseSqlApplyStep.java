@@ -3,14 +3,18 @@ package io.jenkins.plugins.configops.database;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
+import hudson.Launcher;
 import hudson.model.Run;
 import hudson.model.TaskListener;
+import hudson.remoting.Callable;
+import hudson.remoting.VirtualChannel;
 import io.jenkins.plugins.configops.model.dto.DatabaseSqlDTO;
 import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
+import io.jenkins.plugins.configops.utils.Utils;
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -26,13 +30,15 @@ import org.jenkinsci.plugins.workflow.steps.StepContext;
 import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
+import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 @Getter
 @Setter
 @ToString
 public class DatabaseSqlApplyStep extends Step implements Serializable {
-    private static final long serialVersionUID = 1L;
+
+    private static final long serialVersionUID = -3437547656737490722L;
     /**
      * Database ID
      */
@@ -57,6 +63,7 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
     }
 
     public static class StepExecutionImpl extends SynchronousNonBlockingStepExecution<Map<String, Object>> {
+        private static final long serialVersionUID = -1872031188937161306L;
 
         private final DatabaseSqlApplyStep step;
 
@@ -68,16 +75,13 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
         @Override
         protected Map<String, Object> run() throws Exception {
             TaskListener taskListener = getContext().get(TaskListener.class);
-            Logger logger = new Logger("DatabaseConfigApplyStep", taskListener);
-            ConfigOpsClient client = new ConfigOpsClient(step.getToolUrl());
+            Logger logger = new Logger("SQLApply", taskListener);
+            Launcher launcher = getContext().get(Launcher.class);
+            VirtualChannel channel = Utils.getChannel(launcher);
             for (DatabaseSqlDTO item : step.getItems()) {
-                DatabaseConfigReq databaseConfigReq = DatabaseConfigReq.builder()
-                        .dbId(step.getDatabaseId())
-                        .database(item.getDatabase())
-                        .sql(item.getSql())
-                        .build();
                 logger.log("########## Execute sql file start. database:%s", item.getDatabase());
-                DatabaseConfigApplyResp resp = client.databaseConfigApply(databaseConfigReq);
+                DatabaseConfigApplyResp resp =
+                        channel.call(new RemoteExecutionCallable(step.getToolUrl(), step.getDatabaseId(), item));
                 logger.log(false, "Database URL:%s", resp.getDatabase());
                 for (DatabaseConfigApplyResp.SqlResult sqlResult : resp.getResult()) {
                     logger.log(false, "%s", sqlResult.getSql());
@@ -90,6 +94,34 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
             }
             return Collections.emptyMap();
         }
+    }
+
+    public static class RemoteExecutionCallable implements Callable<DatabaseConfigApplyResp, Exception> {
+        private static final long serialVersionUID = 354632146040812160L;
+        private final String toolUrl;
+        private final String databaseId;
+        private final DatabaseSqlDTO item;
+
+        public RemoteExecutionCallable(String toolUrl, String databaseId, DatabaseSqlDTO item) {
+            this.toolUrl = toolUrl;
+            this.databaseId = databaseId;
+            this.item = item;
+        }
+
+        @Override
+        public DatabaseConfigApplyResp call() throws Exception {
+            ConfigOpsClient client = new ConfigOpsClient(toolUrl);
+            DatabaseConfigReq databaseConfigReq = DatabaseConfigReq.builder()
+                    .dbId(databaseId)
+                    .database(item.getDatabase())
+                    .sql(item.getSql())
+                    .build();
+
+            return client.databaseConfigApply(databaseConfigReq);
+        }
+
+        @Override
+        public void checkRoles(RoleChecker checker) throws SecurityException {}
     }
 
     @Extension

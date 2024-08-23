@@ -30,6 +30,8 @@ import org.kohsuke.stapler.StaplerRequest;
 @Log
 public class DatabaseSqlEditParameterDefinition extends ParameterDefinition {
 
+    private static final long serialVersionUID = -2141712008531755931L;
+
     private final List<String> dbs;
 
     @DataBoundConstructor
