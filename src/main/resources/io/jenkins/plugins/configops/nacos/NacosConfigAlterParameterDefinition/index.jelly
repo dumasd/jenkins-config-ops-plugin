@@ -16,7 +16,7 @@
     </div>
 
     <div>
-        <select multiple="multiple" size="${it.getItemSelectSize()}"
+        <select id="nacosConfigsSelect" multiple="multiple" size="${it.getItemSelectSize()}" disabled="true"
                 onchange="updateSelectedNacosConfigs(this)">
             <j:forEach items="${it.getItems()}" var="item" varStatus="status">
                 <f:option value="${item.id}">${item.fullName()}</f:option>
@@ -31,16 +31,16 @@
         <div name="value" id="nacosConfigEditPanes">
         </div>
         <div class="operate-form">
-            <input id="patchBtn" type="button" value="Patch" class="form-item-1"/>
-            <input id="deleteBtn" type="button" value="Delete" class="form-item-1"/>
+            <input id="patchBtn" type="button" value="Patch" class="form-item-1" disabled="true"/>
+            <input id="deleteBtn" type="button" value="Delete" class="form-item-1" disabled="true"/>
         </div>
         <f:entry title="Patch/Delete Content" class="form-item-70">
-            <div class="code-editor" id="nacosConfigPatchEditorContainer">
+            <div id="nacosConfigPatchEditorContainer">
             </div>
         </f:entry>
 
         <f:entry title="Change Comparison (After:Before)" class="form-item-100">
-            <div class="code-editor" id="nacosConfigMergeEditorContainer">
+            <div style="height: 410px" id="nacosConfigMergeEditorContainer">
             </div>
         </f:entry>
     </div>
@@ -198,7 +198,8 @@
             styleActiveLine: true,
             highlightDifferences: true,
             connect: "align"
-        })
+        });
+        patchEditor.setSize(null, "220px");
 
         const patchBtn = document.getElementById("patchBtn");
         const deleteBtn = document.getElementById("deleteBtn");
@@ -234,6 +235,15 @@
                 }
             })
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const nacosConfigsSelect = document.querySelector("#nacosConfigsSelect");
+            const patchBtn = document.getElementById("patchBtn");
+            const deleteBtn = document.getElementById("deleteBtn");
+            nacosConfigsSelect.disabled = false;
+            patchBtn.disabled = false;
+            deleteBtn.disabled = false;
+        });
         ]]>
     </script>
 

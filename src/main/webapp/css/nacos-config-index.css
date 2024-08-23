@@ -12,10 +12,12 @@
 
 .form-item-100 {
     max-width: 100%;
+    margin-bottom: 0.1rem;
 }
 
 .form-item-70 {
     max-width: 70%;
+    margin-bottom: 0.1rem;
 }
 
 .operate-form {
