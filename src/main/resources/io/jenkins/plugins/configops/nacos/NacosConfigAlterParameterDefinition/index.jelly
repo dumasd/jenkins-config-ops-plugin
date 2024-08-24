@@ -15,14 +15,14 @@
         </j:forEach>
     </div>
 
-    <div>
+    <f:entry title="Config Select:" class="form-item-100">
         <select id="nacosConfigsSelect" multiple="multiple" size="${it.getItemSelectSize()}" disabled="true"
                 onchange="updateSelectedNacosConfigs(this)">
             <j:forEach items="${it.getItems()}" var="item" varStatus="status">
                 <f:option value="${item.id}">${item.fullName()}</f:option>
             </j:forEach>
         </select>
-    </div>
+    </f:entry>
 
     <div name="parameter" id="nacosConfigEditMain" style="margin-top: 5px;">
         <input type="hidden" name="name" value="${h.escape(it.name)}"/>
@@ -33,13 +33,14 @@
         <div class="operate-form">
             <input id="patchBtn" type="button" value="Patch" class="form-item-1" disabled="true"/>
             <input id="deleteBtn" type="button" value="Delete" class="form-item-1" disabled="true"/>
+            <input id="resetBtn" type="button" value="Reset" class="form-item-1" disabled="true"/>
         </div>
-        <f:entry title="Patch/Delete Content" class="form-item-70">
+        <f:entry title="Patch/Delete Content:" class="form-item-70">
             <div id="nacosConfigPatchEditorContainer">
             </div>
         </f:entry>
 
-        <f:entry title="Change Comparison (After:Before)" class="form-item-100">
+        <f:entry title="Change Comparison(After/Before):" class="form-item-100">
             <div style="height: 410px" id="nacosConfigMergeEditorContainer">
             </div>
         </f:entry>
@@ -204,6 +205,20 @@
 
         const patchBtn = document.getElementById("patchBtn");
         const deleteBtn = document.getElementById("deleteBtn");
+        const resetBtn = document.getElementById("resetBtn");
+
+        resetBtn.addEventListener("click", function () {
+            const currentId = editor.edit.currentId;
+            if (!currentId) {
+                console.log("Not selected");
+                return;
+            }
+            const currentInput = document.querySelector("#nacosConfigCurrentInput-" + currentId);
+            const nextInput = document.querySelector("#nacosConfigNextInput-" + currentId);
+
+            nextInput.value = currentInput.value;
+            editor.edit.setValue(currentInput.value);
+        });
 
         patchBtn.addEventListener("click", function () {
             editNextContent("/patchContent");
@@ -227,6 +242,10 @@
         }
 
         function editNextContent(path) {
+            if (!editor.edit.currentId) {
+                console.log("Not selected");
+                return;
+            }
             const formatInput = document.querySelector("#nacosConfigCurrentType-" + editor.edit.currentId);
             const format = formatInput.value;
             const content = editor.edit.getValue();
@@ -257,9 +276,11 @@
             const nacosConfigsSelect = document.querySelector("#nacosConfigsSelect");
             const patchBtn = document.getElementById("patchBtn");
             const deleteBtn = document.getElementById("deleteBtn");
+            const resetBtn = document.getElementById("resetBtn");
             nacosConfigsSelect.disabled = false;
             patchBtn.disabled = false;
             deleteBtn.disabled = false;
+            resetBtn.disabled = false;
         });
         ]]>
     </script>
