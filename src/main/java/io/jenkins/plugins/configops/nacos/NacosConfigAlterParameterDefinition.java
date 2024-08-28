@@ -72,12 +72,13 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
                 if (Objects.isNull(ncd)) {
                     throw new IllegalArgumentException("Nacos config not found: id:" + id);
                 }
+                String format = item.getOrDefault("format", ncd.getType()).toString();
                 NacosConfigModifyDTO dto = new NacosConfigModifyDTO();
                 dto.setNamespace(ncd.getTenant());
                 dto.setGroup(ncd.getGroup());
                 dto.setDataId(ncd.getDataId());
-                dto.setFormat(ncd.getType());
                 dto.setContent(ncd.getContent());
+                dto.setFormat(format);
                 dto.setNextContent(item.getString("content"));
                 result.add(dto);
             }
@@ -109,6 +110,7 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
     @ToString
     public static class NacosConfigAlterParameterValue extends ParameterValue {
 
+        private static final long serialVersionUID = 4313454723473437740L;
         private final List<NacosConfigModifyDTO> result;
 
         public NacosConfigAlterParameterValue(String name, List<NacosConfigModifyDTO> result) {

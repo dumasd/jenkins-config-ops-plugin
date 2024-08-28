@@ -11,6 +11,7 @@ import io.jenkins.plugins.configops.model.req.NacosGetConfigsReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -33,7 +34,9 @@ import org.apache.hc.core5.net.URIBuilder;
  * @author Bruce.Wu
  * @date 2024-08-09
  */
-public class ConfigOpsClient {
+public class ConfigOpsClient implements Serializable {
+
+    private static final long serialVersionUID = -4481577247801508720L;
 
     private final String url;
 
@@ -69,6 +72,31 @@ public class ConfigOpsClient {
                     return JSON.parseArray(bs, NacosNamespaceDTO.class);
                 }
             });
+        }
+    }
+
+    public NacosConfigDTO getNacosConfig(String nacosId, String namespace, String group, String dataId) {
+        if ("public".equals(namespace)) {
+            namespace = "";
+        }
+        try (CloseableHttpClient httpClient = HttpUtils.createClient()) {
+            URIBuilder uriBuilder = new URIBuilder(url + "/nacos/v1/config");
+            uriBuilder
+                    .addParameter("nacos_id", nacosId)
+                    .addParameter("namespace_id", namespace)
+                    .addParameter("group", group)
+                    .addParameter("data_id", dataId);
+            HttpGet httpReq = new HttpGet(uriBuilder.build());
+            return httpClient.execute(httpReq, new InnerHttpClientResponseHandler<>() {
+                @Override
+                public NacosConfigDTO handleEntity(HttpEntity entity) throws IOException {
+                    byte[] bs = EntityUtils.toByteArray(entity);
+                    EntityUtils.consume(entity);
+                    return JSON.parseObject(bs, NacosConfigDTO.class);
+                }
+            });
+        } catch (Exception e) {
+            throw new ConfigOpsException(e);
         }
     }
 

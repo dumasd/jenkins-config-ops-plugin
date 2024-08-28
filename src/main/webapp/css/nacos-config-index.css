@@ -20,6 +20,7 @@
     margin-bottom: 0.1rem;
 }
 
+
 .operate-form {
     width: 100%;
     display: flex;
@@ -27,28 +28,34 @@
     flex-wrap: wrap;
 
 
-    .form-item {
+    .item {
         margin-right: 0.5rem;
         margin-bottom: 1rem;
         min-width: 20%;
     }
 
-    .form-item-1 {
+    .item-10 {
         margin-right: 0.5rem;
         margin-bottom: 1rem;
         min-width: 10%;
     }
 
-    .form-item-2 {
+    .item-20 {
         margin-right: 0.5rem;
         margin-bottom: 1rem;
         min-width: 20%;
     }
 
-    .form-item-3 {
+    .form-25 {
         margin-right: 0.5rem;
         margin-bottom: 1rem;
         min-width: 25%;
+    }
+
+    .item-45 {
+        margin-right: 0.5rem;
+        margin-bottom: 1rem;
+        min-width: 40%;
     }
 }
 

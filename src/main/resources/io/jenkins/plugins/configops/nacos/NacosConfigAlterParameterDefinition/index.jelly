@@ -12,6 +12,10 @@
         <j:forEach items="${it.getItems()}" var="item" varStatus="status">
             <input id="nacosConfigCurrentInput-${item.id}" type="hidden" value="${item.content}" disabled="disabled"/>
             <input id="nacosConfigCurrentType-${item.id}" type="hidden" value="${item.type}" disabled="disabled"/>
+            <input id="nacosConfigPatchInput-${item.id}" type="hidden" value="${item.patchContent()}"
+                   disabled="disabled"/>
+            <input id="nacosConfigDeleteInput-${item.id}" type="hidden" value="${item.deleteContent()}"
+                   disabled="disabled"/>
         </j:forEach>
     </div>
 
@@ -35,10 +39,20 @@
             <input id="deleteBtn" type="button" value="Delete" class="form-item-1" disabled="true"/>
             <input id="resetBtn" type="button" value="Reset" class="form-item-1" disabled="true"/>
         </div>
-        <f:entry title="Patch/Delete Content:" class="form-item-70">
-            <div id="nacosConfigPatchEditorContainer">
+
+        <div class="operate-form" style="margin-top: 10px">
+            <div style="width:50%">
+                <span>Patch Content</span>
+                <div id="nacosConfigPatchEditorContainer" style="width:100%">
+                </div>
             </div>
-        </f:entry>
+
+            <div style="width:50%">
+                <span>Delete Content</span>
+                <div id="nacosConfigDeleteEditorContainer" style="width:100%">
+                </div>
+            </div>
+        </div>
 
         <f:entry title="Change Comparison(After/Before):" class="form-item-100">
             <div style="height: 410px" id="nacosConfigMergeEditorContainer">
@@ -61,7 +75,31 @@
     <script type="text/javascript">
         <![CDATA[
         var BASE_URL = '${rootURL}/descriptorByName/io.jenkins.plugins.configops.nacos.NacosConfigAlterParameterDefinition'
-        console.log(crumb)
+        function onTabClick(option) {
+            const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
+            const patchInput = document.querySelector("#nacosConfigPatchInput-" + option);
+            const deleteInput = document.querySelector("#nacosConfigDeleteInput-" + option);
+
+            const nextContentInput = document.querySelector("#nacosConfigNextInput-" + option);
+            const nextFormatInput = document.querySelector("#nacosConfigNextFormatInput-" + option);
+
+            const format = nextFormatInput.value;
+
+            editor.edit.currentId = option;
+            editor.edit.setValue(nextContentInput.value)
+            editor.rightOriginal().setValue(currentInput.value);
+
+            editor.edit.setOption('mode', format);
+            editor.rightOriginal().setOption('mode', format);
+
+            patchEditor.currentId = option;
+            patchEditor.setValue(patchInput.value);
+            patchEditor.setOption('mode', format);
+
+            deleteEditor.currentId = option;
+            deleteEditor.setValue(deleteInput.value);
+            deleteEditor.setOption('mode', format);
+        }
 
         function updateSelectedNacosConfigs(select) {
             const tabBar = document.querySelector("#selectedNacosConfigsTab");
@@ -82,19 +120,7 @@
                         tab.classList.remove("active");
                     });
                     tab.classList.add("active");
-
-                    const formatInput = document.querySelector("#nacosConfigCurrentType-" + option);
-                    const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
-                    const nextInput = document.querySelector("#nacosConfigNextInput-" + option);
-                    editor.edit.currentId = option;
-                    editor.edit.setValue(nextInput.value)
-                    editor.rightOriginal().setValue(currentInput.value);
-
-                    editor.edit.setOption('mode', formatInput.value);
-                    editor.rightOriginal().setOption('mode', formatInput.value);
-
-                    patchEditor.setValue("");
-                    patchEditor.setOption('mode', formatInput.value);
+                    onTabClick(option);
                 });
 
                 const tabLink = document.createElement("a");
@@ -132,6 +158,7 @@
             // 余下的创建并追加到tabPanesDiv中
             for (let i = 0; i < optionValuesCopy.length; i++) {
                 const option = optionValuesCopy[i];
+                const formatInput = document.querySelector("#nacosConfigCurrentType-" + option);
                 const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
                 const div = document.createElement("div");
                 div.setAttribute("name", option);
@@ -148,25 +175,21 @@
                 nextContentInput.name = "content";
                 nextContentInput.id = "nacosConfigNextInput-" + option;
 
+                const nextFormatInput = document.createElement("input");
+                nextFormatInput.type = "hidden";
+                nextFormatInput.value = formatInput.value;
+                nextFormatInput.name = "format";
+                nextFormatInput.id = "nacosConfigNextFormatInput-" + option;
+
                 div.appendChild(checkInput);
                 div.appendChild(nextContentInput);
+                div.appendChild(nextFormatInput);
                 tabPanesDiv.appendChild(div);
             }
 
             if (optionValues.length > 0) {
-                editor.edit.currentId = optionValues[0];
-                const formatInput = document.querySelector("#nacosConfigCurrentType-" + optionValues[0]);
-                const currentInput = document.querySelector("#nacosConfigCurrentInput-" + optionValues[0]);
-                const nextInput = document.querySelector("#nacosConfigNextInput-" + optionValues[0]);
-
-                editor.edit.setValue(nextInput.value)
-                editor.rightOriginal().setValue(currentInput.value);
-
-                editor.edit.setOption('mode', formatInput.value);
-                editor.rightOriginal().setOption('mode', formatInput.value);
-
-                patchEditor.setValue("");
-                patchEditor.setOption('mode', formatInput.value);
+                const option = optionValues[0];
+                onTabClick(option);
             }
         }
 
@@ -176,7 +199,7 @@
             lineNumbers: true,
             gutters: ["CodeMirror-lint-markers"],
             lint: true,
-            mode: 'yaml',
+            mode: '',
             styleActiveLine: true,
             highlightDifferences: true,
             connect: "align"
@@ -196,12 +219,42 @@
             lineNumbers: true,
             gutters: ["CodeMirror-lint-markers"],
             lint: true,
-            mode: 'yaml',
+            mode: 'text',
             styleActiveLine: true,
             highlightDifferences: true,
             connect: "align"
         });
-        patchEditor.setSize(null, "220px");
+        patchEditor.setSize(null, "240px");
+
+        patchEditor.on('change', function(cm, changeObj) {
+            if (changeObj.origin === 'setValue') {
+                cm.clearHistory();
+                return;
+            }
+            const patchInput = document.querySelector("#nacosConfigPatchInput-" + cm.currentId);
+            patchInput.value = cm.getValue();
+        });
+
+        const deleteEditor = CodeMirror(document.querySelector("#nacosConfigDeleteEditorContainer"), {
+            value: '',
+            lineNumbers: true,
+            gutters: ["CodeMirror-lint-markers"],
+            lint: true,
+            mode: 'text',
+            styleActiveLine: true,
+            highlightDifferences: true,
+            connect: "align"
+        });
+        deleteEditor.setSize(null, "240px");
+
+        deleteEditor.on('change', function(cm, changeObj) {
+            if (changeObj.origin === 'setValue') {
+                cm.clearHistory();
+                return;
+            }
+            const deleteInput = document.querySelector("#nacosConfigDeleteInput-" + cm.currentId);
+            deleteInput.value = cm.getValue();
+        });
 
         const patchBtn = document.getElementById("patchBtn");
         const deleteBtn = document.getElementById("deleteBtn");
@@ -221,11 +274,11 @@
         });
 
         patchBtn.addEventListener("click", function () {
-            editNextContent("/patchContent");
+            editNextContent("/patchContent", patchEditor.getValue());
         });
 
         deleteBtn.addEventListener("click", function () {
-            editNextContent("/deleteContent");
+            editNextContent("/deleteContent", deleteEditor.getValue());
         });
 
         function objectToUrlFormEncoded(parameters) {
@@ -241,7 +294,7 @@
             return formBody.join("&");
         }
 
-        function editNextContent(path) {
+        function editNextContent(path, edit) {
             if (!editor.edit.currentId) {
                 console.log("Not selected");
                 return;
@@ -249,7 +302,6 @@
             const formatInput = document.querySelector("#nacosConfigCurrentType-" + editor.edit.currentId);
             const format = formatInput.value;
             const content = editor.edit.getValue();
-            const edit = patchEditor.getValue();
             fetch(BASE_URL + path, {
                 method: "post",
                 headers: crumb.wrap({
@@ -263,9 +315,17 @@
             })
                     .then((response) => response.json())
                     .then((data) => {
+                        const nextContentInput = document.querySelector("#nacosConfigNextInput-" + editor.edit.currentId);
+                        const nextFormatInput = document.querySelector("#nacosConfigNextFormatInput-" + editor.edit.currentId);
+
                         editor.edit.setValue(data.next_content);
-                        const nextInput = document.querySelector("#nacosConfigNextInput-" + editor.edit.currentId);
-                        nextInput.value = data.next_content;
+                        if (data.format && data.format.length > 0) {
+                            nextFormatInput.value = data.format;
+                            editor.edit.setOption('mode', data.format);
+                            editor.rightOriginal().setOption('mode', data.format);
+                        }
+
+                        nextContentInput.value = data.next_content;
                     })
                     .catch((err) => {
                         console.log(err);

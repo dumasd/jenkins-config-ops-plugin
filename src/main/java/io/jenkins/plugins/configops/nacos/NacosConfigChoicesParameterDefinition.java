@@ -37,6 +37,8 @@ import org.kohsuke.stapler.verb.POST;
 @Getter
 public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
 
+    private static final long serialVersionUID = -7576372260248282963L;
+
     private final List<NacosConfigFileDTO> choices;
 
     @DataBoundConstructor
@@ -83,6 +85,8 @@ public class NacosConfigChoicesParameterDefinition extends ParameterDefinition {
     @Setter
     @ToString
     public static class NacosConfigChoicesParameterValue extends ParameterValue {
+
+        private static final long serialVersionUID = -3674127270786698110L;
 
         private List<NacosChoiceOptionDTO> choices;
 
