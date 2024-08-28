@@ -1,0 +1,57 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <l:layout title="SqlApply">
+        <j:set var="build" value="${it.owningRun}"/>
+        <j:if test="${build!=null}">
+            <st:include page="sidepanel" it="${build}" optional="true"/>
+        </j:if>
+
+        <l:main-panel>
+            <h2>Applied SQL List</h2>
+            <table class="jenkins-table jenkins-!-margin-bottom-0">
+                <thead>
+                    <th>
+                        URL
+                    </th>
+                    <th>
+                        Database
+                    </th>
+                    <th>
+                        SQL
+                    </th>
+                    <th>
+                        Affected Row Count
+                    </th>
+                    <th>
+                        Operation
+                    </th>
+                </thead>
+                <tbody>
+                    <j:forEach var="item" varStatus="status" items="${it.data}">
+                        <tr>
+                            <td>
+                                ${item.url}
+                            </td>
+                            <td>
+                                ${item.database}
+                            </td>
+                            <td>
+                                ${item.sql}
+                            </td>
+                            <td>
+                                ${item.rowcount}
+                            </td>
+                            <td>
+                                <a href="${rootURL}/job/${build.parent.name}/${build.number}/${item.getUrlName()}"
+                                   class="jenkins-table__link">Detail
+                                </a>
+                            </td>
+                        </tr>
+                    </j:forEach>
+                </tbody>
+            </table>
+        </l:main-panel>
+    </l:layout>
+</j:jelly>

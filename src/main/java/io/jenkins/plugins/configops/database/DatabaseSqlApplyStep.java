@@ -15,15 +15,19 @@ import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.java.Log;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
 import org.jenkinsci.plugins.workflow.steps.StepContext;
@@ -36,6 +40,7 @@ import org.kohsuke.stapler.DataBoundConstructor;
 @Getter
 @Setter
 @ToString
+@Log
 public class DatabaseSqlApplyStep extends Step implements Serializable {
 
     private static final long serialVersionUID = -3437547656737490722L;
@@ -75,22 +80,43 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
         @Override
         protected Map<String, Object> run() throws Exception {
             TaskListener taskListener = getContext().get(TaskListener.class);
+
             Logger logger = new Logger("SQLApply", taskListener);
             Launcher launcher = getContext().get(Launcher.class);
             VirtualChannel channel = Utils.getChannel(launcher);
+            Run<?, ?> run = getContext().get(Run.class);
+            if (Objects.isNull(run)) {
+                throw new IllegalArgumentException("Step run is null");
+            }
+
+            SqlApplyResultAction resultAction = run.getAction(SqlApplyResultAction.class);
+            if (Objects.isNull(resultAction)) {
+                resultAction = new SqlApplyResultAction();
+                run.addAction(resultAction);
+            }
+
             for (DatabaseSqlDTO item : step.getItems()) {
-                logger.log("########## Execute sql file start. database:%s", item.getDatabase());
+                logger.log("========== Execute database sql start:%s", item.getDatabase());
                 DatabaseConfigApplyResp resp =
                         channel.call(new RemoteExecutionCallable(step.getToolUrl(), step.getDatabaseId(), item));
                 logger.log(false, "Database URL:%s", resp.getDatabase());
                 for (DatabaseConfigApplyResp.SqlResult sqlResult : resp.getResult()) {
-                    logger.log(false, "%s", sqlResult.getSql());
+                    logger.log(false, "%s\n", sqlResult.getSql());
                     logger.log(
                             false,
-                            "Affected row count: %s\n",
+                            "Affected row count: %s",
                             sqlResult.getRowcount().toString());
+                    SqlApplyDetailAction sqlApplyDetail = new SqlApplyDetailAction()
+                            .setStepHash(String.valueOf(this.hashCode()))
+                            .setUrl(resp.getDatabase())
+                            .setDatabase(item.getDatabase())
+                            .setRowcount(sqlResult.getRowcount())
+                            .setSql(sqlResult.getSql())
+                            .setRows(sqlResult.getRows());
+                    run.addAction(sqlApplyDetail);
+                    resultAction.addDetail(sqlApplyDetail);
                 }
-                logger.log("========== Execute sql file end.");
+                logger.log("========== Execute database sql end.");
             }
             return Collections.emptyMap();
         }
@@ -121,7 +147,8 @@ public class DatabaseSqlApplyStep extends Step implements Serializable {
         }
 
         @Override
-        public void checkRoles(RoleChecker checker) throws SecurityException {}
+        public void checkRoles(RoleChecker checker) throws SecurityException {
+        }
     }
 
     @Extension

@@ -1,0 +1,49 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
+         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+
+    <l:layout title="SqlApplyDetail">
+        <j:set var="build" value="${it.owningRun}"/>
+        <j:if test="${build!=null}">
+            <st:include page="sidepanel" it="${build}" optional="true"/>
+        </j:if>
+
+        <l:main-panel>
+            <strong>Database</strong>: ${it.database}
+            <br/>
+            <strong>Row Count</strong>: ${it.rowcount}
+            <br/>
+
+            <f:entry title="SQL:">
+                <f:textarea value="${it.sql}">
+                </f:textarea>
+            </f:entry>
+
+            <f:entry title="Query Result">
+                <table class="jenkins-table jenkins-!-margin-bottom-0">
+                    <thead>
+                        <j:forEach varStatus="status" var="item" items="${it.getColumns()}">
+                            <th>
+                                ${item}
+                            </th>
+                        </j:forEach>
+                    </thead>
+
+                    <tbody>
+                        <j:forEach varStatus="status" var="item" items="${it.rows}">
+                            <tr>
+                                <j:forEach var="row" items="${item.values()}">
+                                    <td>
+                                        ${row}
+                                    </td>
+                                </j:forEach>
+                            </tr>
+                        </j:forEach>
+
+                    </tbody>
+                </table>
+            </f:entry>
+
+        </l:main-panel>
+    </l:layout>
+</j:jelly>

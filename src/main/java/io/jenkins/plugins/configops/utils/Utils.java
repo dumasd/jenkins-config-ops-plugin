@@ -4,7 +4,12 @@ import hudson.Launcher;
 import hudson.remoting.VirtualChannel;
 import hudson.util.VersionNumber;
 import java.io.File;
+import java.io.PrintStream;
 import java.util.Collection;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -68,5 +73,40 @@ public class Utils {
         VersionNumber vn1 = new VersionNumber(v1);
         VersionNumber vn2 = new VersionNumber(v2);
         return vn1.compareTo(vn2);
+    }
+
+    public static void printTableData(PrintStream ps, List<LinkedHashMap<String, Object>> list, int maxCount) {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+        LinkedHashMap<String, Object> first = list.get(0);
+
+        // 打印头
+        Set<String> headers = first.keySet();
+        for (String cell : headers) {
+            ps.printf("%-15s", cell);
+        }
+        ps.println();
+
+        // 打印分割行
+        for (int i = 0; i < headers.size(); i++) {
+            ps.print("----------------");
+        }
+        ps.println();
+
+        // 打印数据
+        int count = 0;
+        for (LinkedHashMap<String, Object> row : list) {
+            Collection<Object> values = row.values();
+            for (Object cell : values) {
+                String str = Objects.requireNonNullElse(cell, "NULL").toString();
+                ps.printf("%-15s", str);
+            }
+            ps.println();
+            count++;
+            if (maxCount > 0 && count >= maxCount) {
+                break;
+            }
+        }
     }
 }
