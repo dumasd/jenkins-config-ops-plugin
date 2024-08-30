@@ -11,7 +11,7 @@
     <div style="display: none;">
         <j:forEach items="${it.getItems()}" var="item" varStatus="status">
             <input id="nacosConfigCurrentInput-${item.id}" type="hidden" value="${item.content}" disabled="disabled"/>
-            <input id="nacosConfigCurrentType-${item.id}" type="hidden" value="${item.type}" disabled="disabled"/>
+            <input id="nacosConfigCurrentType-${item.id}" type="hidden" value="${item.format}" disabled="disabled"/>
             <input id="nacosConfigPatchInput-${item.id}" type="hidden" value="${item.patchContent()}"
                    disabled="disabled"/>
             <input id="nacosConfigDeleteInput-${item.id}" type="hidden" value="${item.deleteContent()}"
@@ -318,14 +318,14 @@
                         const nextContentInput = document.querySelector("#nacosConfigNextInput-" + editor.edit.currentId);
                         const nextFormatInput = document.querySelector("#nacosConfigNextFormatInput-" + editor.edit.currentId);
 
-                        editor.edit.setValue(data.next_content);
+                        editor.edit.setValue(data.nextContent);
                         if (data.format && data.format.length > 0) {
                             nextFormatInput.value = data.format;
                             editor.edit.setOption('mode', data.format);
                             editor.rightOriginal().setOption('mode', data.format);
                         }
 
-                        nextContentInput.value = data.next_content;
+                        nextContentInput.value = data.nextContent;
                     })
                     .catch((err) => {
                         console.log(err);

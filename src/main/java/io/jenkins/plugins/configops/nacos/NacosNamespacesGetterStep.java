@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.nacos;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
 import hudson.model.Run;
@@ -27,6 +26,7 @@ import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 
+@Deprecated
 @Setter
 @Getter
 public class NacosNamespacesGetterStep extends Step implements Serializable {
@@ -89,7 +89,7 @@ public class NacosNamespacesGetterStep extends Step implements Serializable {
         public void checkRoles(RoleChecker checker) throws SecurityException {}
     }
 
-    @Extension
+    // @Extension
     public static class DescriptorImpl extends StepDescriptor {
         @Override
         public Set<? extends Class<?>> getRequiredContext() {

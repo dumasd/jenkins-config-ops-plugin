@@ -1,5 +1,6 @@
 package io.jenkins.plugins.configops.nacos;
 
+import com.alibaba.fastjson2.JSON;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
@@ -8,18 +9,22 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.remoting.Callable;
 import hudson.remoting.VirtualChannel;
+import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
 import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
-import io.jenkins.plugins.configops.model.req.NacosConfigReq;
+import io.jenkins.plugins.configops.model.req.NacosApplyChangeSetReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
+
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,15 +38,13 @@ import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 
 /**
- * 修改确认
- *
  * @author Bruce.Wu
- * @date 2024-08-11
+ * @date 2024-08-30
  */
 @Setter
 @Getter
 @ToString
-public class NacosConfigModifyApplyStep extends Step implements Serializable {
+public class NacosChangeSetApplyStep extends Step implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,19 +52,22 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
 
     private final String toolUrl;
 
+    private final String changeSetId;
+
     private final List<NacosConfigModifyDTO> items;
 
     @DataBoundConstructor
-    public NacosConfigModifyApplyStep(
-            @NonNull String nacosId, String toolUrl, @NonNull List<NacosConfigModifyDTO> items) {
+    public NacosChangeSetApplyStep(
+            @NonNull String nacosId, String toolUrl, String changeSetId, @NonNull List<NacosConfigModifyDTO> items) {
         this.nacosId = nacosId;
         this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
+        this.changeSetId = changeSetId;
         this.items = items;
     }
 
     @Override
     public StepExecution start(StepContext context) throws Exception {
-        return new NacosConfigModifyApplyStepExecution(context, new NacosConfigApplyData(nacosId, toolUrl, items));
+        return new StepExecutionImpl(context, this);
     }
 
     @Extension
@@ -78,23 +84,23 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
         @NonNull
         @Override
         public String getDisplayName() {
-            return "Nacos Config Modify Apply Step";
+            return "Nacos Change Set Apply Step";
         }
 
         @Override
         public String getFunctionName() {
-            return "nacosConfigModifyApply";
+            return "nacosChangeSetApply";
         }
     }
 
-    public static class NacosConfigModifyApplyStepExecution extends SynchronousStepExecution<Map<String, Object>> {
+    public static class StepExecutionImpl extends SynchronousStepExecution<Map<String, Object>> {
 
         private static final long serialVersionUID = -1372992911615088880L;
-        private final NacosConfigApplyData data;
+        private final NacosChangeSetApplyStep step;
 
-        public NacosConfigModifyApplyStepExecution(@NonNull StepContext context, NacosConfigApplyData data) {
+        public StepExecutionImpl(@NonNull StepContext context, NacosChangeSetApplyStep step) {
             super(context);
-            this.data = data;
+            this.step = step;
         }
 
         @Override
@@ -102,24 +108,24 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
             TaskListener taskListener = getContext().get(TaskListener.class);
             Logger logger = new Logger("NacosConfigApply", taskListener);
             Launcher launcher = getContext().get(Launcher.class);
-            List<NacosConfigModifyDTO> items = data.getItems();
-            String toolUrl = data.getToolUrl();
-            String nacosId = data.getNacosId();
-            Utils.requireNotEmpty(items, "Config items is empty");
-            for (NacosConfigModifyDTO dto : items) {
-                Utils.requireNotBlank(dto.getNextContent(), "Next content is blank");
-                Utils.requireNotBlank(dto.getGroup(), "Group is blank");
-                Utils.requireNotBlank(dto.getDataId(), "Group is blank");
-            }
-
+            List<NacosConfigDTO> changes = step.getItems().stream()
+                    .map(e -> {
+                        NacosConfigDTO nc = new NacosConfigDTO();
+                        nc.setNamespace(e.getNamespace());
+                        nc.setGroup(e.getGroup());
+                        nc.setDataId(e.getDataId());
+                        nc.setContent(e.getNextContent());
+                        nc.setFormat(e.getFormat());
+                        return nc;
+                    })
+                    .collect(Collectors.toList());
             VirtualChannel channel = Utils.getChannel(launcher);
+            logger.log(
+                    "Applying change log config. toolUrl:%s, nacosId:%s, changeSetId:%s",
+                    step.getToolUrl(), step.getNacosId(), step.getChangeSetId());
 
-            for (NacosConfigModifyDTO item : items) {
-                logger.log(
-                        "Applying nacos config. toolUrl:%s, nacosId:%s, namespace:%s, group:%s, dataId:%s",
-                        toolUrl, nacosId, item.getNamespace(), item.getGroup(), item.getDataId());
-                channel.call(new RemoteExecutionCallable(toolUrl, nacosId, item));
-            }
+            channel.call(new RemoteExecutionCallable(step.getToolUrl(), step.getNacosId(), step.getChangeSetId(), changes));
+
             return Collections.emptyMap();
         }
     }
@@ -129,49 +135,28 @@ public class NacosConfigModifyApplyStep extends Step implements Serializable {
         private static final long serialVersionUID = 4711346178005514552L;
         private final String toolUrl;
         private final String nacosId;
-        private final NacosConfigModifyDTO item;
+        private final String changeSetId;
+        private final List<NacosConfigDTO> changes;
 
-        public RemoteExecutionCallable(String toolUrl, String nacosId, NacosConfigModifyDTO item) {
+        public RemoteExecutionCallable(String toolUrl, String nacosId, String changeSetId, List<NacosConfigDTO> changes) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
-            this.item = item;
+            this.changeSetId = changeSetId;
+            this.changes = changes;
         }
 
         @Override
         public String call() throws Exception {
             ConfigOpsClient client = new ConfigOpsClient(toolUrl);
-            NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
-                    .nacosId(nacosId)
-                    .namespace(item.getNamespace())
-                    .group(item.getGroup())
-                    .dataId(item.getDataId())
-                    .content(item.getNextContent())
-                    .format(item.getFormat())
-                    .build();
-            return client.nacosConfigModifyApply(nacosConfigReq);
+            NacosApplyChangeSetReq req = new NacosApplyChangeSetReq();
+            req.setNacosId(nacosId);
+            req.setChangeSetId(changeSetId);
+            req.setChanges(changes);
+            return client.applyChangeSet(req);
         }
 
         @Override
-        public void checkRoles(RoleChecker checker) throws SecurityException {}
-    }
-
-    @Setter
-    @Getter
-    @ToString
-    public static class NacosConfigApplyData implements Serializable {
-
-        private static final long serialVersionUID = -4306037005248347948L;
-
-        private final String nacosId;
-
-        private final String toolUrl;
-
-        private final List<NacosConfigModifyDTO> items;
-
-        public NacosConfigApplyData(String nacosId, String toolUrl, List<NacosConfigModifyDTO> items) {
-            this.nacosId = nacosId;
-            this.toolUrl = toolUrl;
-            this.items = items;
+        public void checkRoles(RoleChecker checker) throws SecurityException {
         }
     }
 }

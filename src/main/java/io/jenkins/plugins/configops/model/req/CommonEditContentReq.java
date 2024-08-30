@@ -16,6 +16,8 @@ import lombok.ToString;
 @Builder
 public class CommonEditContentReq implements Serializable {
 
+    private static final long serialVersionUID = -5334064749190268920L;
+
     private String content;
 
     private String edit;

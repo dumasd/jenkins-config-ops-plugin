@@ -25,6 +25,7 @@ import org.kohsuke.stapler.export.Flavor;
 @ToString
 public class ListNacosConfigFileResp implements Serializable, HttpResponse {
 
+    private static final long serialVersionUID = 6973752201193310947L;
     private List<NacosConfigFileDTO> values;
 
     public ListNacosConfigFileResp(List<NacosConfigFileDTO> values) {

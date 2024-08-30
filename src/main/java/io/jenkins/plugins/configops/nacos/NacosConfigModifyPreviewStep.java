@@ -98,7 +98,7 @@ public class NacosConfigModifyPreviewStep extends Step implements Serializable {
 
                 NacosConfigReq nacosConfigReq = NacosConfigReq.builder()
                         .nacosId(step.getNacosId())
-                        .namespaceId(item.getNamespace())
+                        .namespace(item.getNamespace())
                         .group(item.getGroup())
                         .dataId(item.getDataId())
                         .fullContent(fullCnt)

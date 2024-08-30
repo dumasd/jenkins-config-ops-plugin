@@ -1,6 +1,5 @@
 package io.jenkins.plugins.configops.model.req;
 
-import com.alibaba.fastjson2.annotation.JSONField;
 import java.io.Serializable;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,7 +12,8 @@ import lombok.ToString;
 @Builder
 public class DatabaseConfigReq implements Serializable {
 
-    @JSONField(name = "db_id")
+    private static final long serialVersionUID = 3319133105875479508L;
+
     private String dbId;
 
     private String sql;

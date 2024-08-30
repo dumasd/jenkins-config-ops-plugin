@@ -6,12 +6,16 @@ import io.jenkins.plugins.configops.model.dto.NacosNamespaceDTO;
 import io.jenkins.plugins.configops.model.dto.NacosServerDTO;
 import io.jenkins.plugins.configops.model.req.CommonEditContentReq;
 import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
+import io.jenkins.plugins.configops.model.req.NacosApplyChangeSetReq;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
+import io.jenkins.plugins.configops.model.req.NacosGetChangeSetReq;
 import io.jenkins.plugins.configops.model.req.NacosGetConfigsReq;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
+import io.jenkins.plugins.configops.model.resp.NacosGetChangeSetResp;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hc.client5.http.ClientProtocolException;
@@ -201,6 +205,44 @@ public class ConfigOpsClient implements Serializable {
                     return JSON.parseObject(bs, NacosConfigModifyPreviewResp.class);
                 }
             });
+        }
+    }
+
+    public NacosGetChangeSetResp getChangeSet(NacosGetChangeSetReq req) {
+        try (CloseableHttpClient httpClient = HttpUtils.createClient()) {
+            URIBuilder uriBuilder = new URIBuilder(url + "/nacos/v1/get_change_set");
+            HttpPost httpReq = new HttpPost(uriBuilder.build());
+            HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
+            httpReq.setEntity(entity);
+            return httpClient.execute(httpReq, new InnerHttpClientResponseHandler<>() {
+                @Override
+                public NacosGetChangeSetResp handleEntity(HttpEntity entity) throws IOException {
+                    byte[] bs = EntityUtils.toByteArray(entity);
+                    EntityUtils.consume(entity);
+                    return JSON.parseObject(bs, NacosGetChangeSetResp.class);
+                }
+            });
+        } catch (Exception e) {
+            throw new ConfigOpsException(e);
+        }
+    }
+
+    public String applyChangeSet(NacosApplyChangeSetReq req) {
+        try (CloseableHttpClient httpClient = HttpUtils.createClient()) {
+            URIBuilder uriBuilder = new URIBuilder(url + "/nacos/v1/apply_change_set");
+            HttpPost httpReq = new HttpPost(uriBuilder.build());
+            HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
+            httpReq.setEntity(entity);
+            return httpClient.execute(httpReq, new InnerHttpClientResponseHandler<>() {
+                @Override
+                public String handleEntity(HttpEntity entity) throws IOException {
+                    byte[] bs = EntityUtils.toByteArray(entity);
+                    EntityUtils.consume(entity);
+                    return new String(bs, StandardCharsets.UTF_8);
+                }
+            });
+        } catch (Exception e) {
+            throw new ConfigOpsException(e);
         }
     }
 

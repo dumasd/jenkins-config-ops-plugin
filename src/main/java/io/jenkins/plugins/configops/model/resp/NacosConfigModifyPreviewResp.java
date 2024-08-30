@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.model.resp;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.annotation.JSONField;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -33,7 +32,6 @@ public class NacosConfigModifyPreviewResp implements Serializable, HttpResponse 
     /**
      * 修改后的值
      */
-    @JSONField(name = "next_content")
     private String nextContent;
 
     @Override

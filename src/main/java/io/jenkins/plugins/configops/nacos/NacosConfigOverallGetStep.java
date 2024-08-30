@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.nacos;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
-import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
@@ -37,6 +36,7 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 
+@Deprecated
 @Setter
 @Getter
 @ToString
@@ -164,7 +164,7 @@ public class NacosConfigOverallGetStep extends Step implements Serializable {
         }
     }
 
-    @Extension
+    // @Extension
     public static class DescriptorImpl extends StepDescriptor {
         @Override
         public Set<? extends Class<?>> getRequiredContext() {

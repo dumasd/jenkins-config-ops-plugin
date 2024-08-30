@@ -13,14 +13,13 @@ public class NacosConfigDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String id;
-    private String tenant;
+    private String namespace;
     private String group;
     private String dataId;
     private String content;
-    private String type;
     private String appName;
     private String md5;
-
+    private String format;
     /**
      * 追加内容
      */
@@ -29,6 +28,10 @@ public class NacosConfigDTO implements Serializable {
      * 删除内容
      */
     private String deleteContent = "";
+    /**
+     * 修改后内容
+     */
+    private String nextContent = "";
 
     public String patchContent() {
         return Objects.requireNonNullElse(patchContent, "");
@@ -40,10 +43,10 @@ public class NacosConfigDTO implements Serializable {
 
     public String fullName() {
         String ns;
-        if (tenant == null || tenant.isBlank()) {
+        if (namespace == null || namespace.isBlank()) {
             ns = "public";
         } else {
-            ns = tenant;
+            ns = namespace;
         }
         return String.format("%s/%s/%s", ns, group, dataId);
     }

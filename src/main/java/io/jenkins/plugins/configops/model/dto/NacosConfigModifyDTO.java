@@ -33,6 +33,4 @@ public class NacosConfigModifyDTO implements Serializable {
      * 修改后的值
      */
     private String nextContent;
-
-    public void check() {}
 }

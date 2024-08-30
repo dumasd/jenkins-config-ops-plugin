@@ -59,7 +59,6 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
 
     @Override
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
-        // log.log(Level.INFO, "Create value with jo. {0}", jo);
         JSONObject value = jo.getJSONObject("value");
         JSONArray ids = value.names();
         List<NacosConfigModifyDTO> result = new ArrayList<>(ids.size());
@@ -72,9 +71,9 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
                 if (Objects.isNull(ncd)) {
                     throw new IllegalArgumentException("Nacos config not found: id:" + id);
                 }
-                String format = item.getOrDefault("format", ncd.getType()).toString();
+                String format = item.getOrDefault("format", ncd.getFormat()).toString();
                 NacosConfigModifyDTO dto = new NacosConfigModifyDTO();
-                dto.setNamespace(ncd.getTenant());
+                dto.setNamespace(ncd.getNamespace());
                 dto.setGroup(ncd.getGroup());
                 dto.setDataId(ncd.getDataId());
                 dto.setContent(ncd.getContent());
