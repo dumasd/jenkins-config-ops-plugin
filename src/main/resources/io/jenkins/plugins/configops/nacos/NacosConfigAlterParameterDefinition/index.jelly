@@ -160,6 +160,8 @@
                 const option = optionValuesCopy[i];
                 const formatInput = document.querySelector("#nacosConfigCurrentType-" + option);
                 const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
+                const patchInput = document.querySelector("#nacosConfigPatchInput-" + option);
+                const deleteInput = document.querySelector("#nacosConfigDeleteInput-" + option);
                 const div = document.createElement("div");
                 div.setAttribute("name", option);
 
@@ -185,6 +187,34 @@
                 div.appendChild(nextContentInput);
                 div.appendChild(nextFormatInput);
                 tabPanesDiv.appendChild(div);
+
+                fetch(BASE_URL + "/deleteAndPatchContent", {
+                    method: "post",
+                    headers: crumb.wrap({
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    }),
+                    body: objectToUrlFormEncoded({
+                        format: formatInput.value,
+                        content: currentInput.value,
+                        patch: patchInput.value,
+                        delete: deleteInput.value
+                    })
+                })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            nextContentInput.value = data.nextContent;
+                            if (option === editor.edit.currentId) {
+                                editor.edit.setValue(data.nextContent);
+                                if (data.format && data.format.length > 0) {
+                                    nextFormatInput.value = data.format;
+                                    editor.edit.setOption('mode', data.format);
+                                    editor.rightOriginal().setOption('mode', data.format);
+                                }
+                            }
+                        })
+                        .catch((err) => {
+                            console.log(err);
+                        });
             }
 
             if (optionValues.length > 0) {

@@ -186,5 +186,28 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
                     .build();
             return client.commonDeleteContent(commonEditContentReq);
         }
+
+        @JavaScriptMethod(name = "deleteAndPatchContent")
+        public NacosConfigModifyPreviewResp doDeleteAndPatchContent(
+                @QueryParameter("content") String content,
+                @QueryParameter("patch") String patch,
+                @QueryParameter("delete") String delete,
+                @QueryParameter("format") String format)
+                throws Exception {
+            String jenkinsConfigOpsUrl = getJenkinsConfigOpsUrl();
+            ConfigOpsClient client = new ConfigOpsClient(jenkinsConfigOpsUrl);
+            CommonEditContentReq commonEditContentReq = CommonEditContentReq.builder()
+                    .edit(delete)
+                    .content(content)
+                    .format(format)
+                    .build();
+            NacosConfigModifyPreviewResp deleteResp = client.commonDeleteContent(commonEditContentReq);
+            commonEditContentReq = CommonEditContentReq.builder()
+                    .edit(patch)
+                    .content(deleteResp.getNextContent())
+                    .format(format)
+                    .build();
+            return client.commonPatchContent(commonEditContentReq);
+        }
     }
 }

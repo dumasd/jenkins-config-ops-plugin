@@ -1,6 +1,5 @@
 package io.jenkins.plugins.configops.nacos;
 
-import com.alibaba.fastjson2.JSON;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.Extension;
 import hudson.FilePath;
@@ -16,7 +15,6 @@ import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
-
 import java.io.Serializable;
 import java.util.Collections;
 import java.util.HashSet;
@@ -24,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -124,7 +121,8 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
                     "Applying change log config. toolUrl:%s, nacosId:%s, changeSetId:%s",
                     step.getToolUrl(), step.getNacosId(), step.getChangeSetId());
 
-            channel.call(new RemoteExecutionCallable(step.getToolUrl(), step.getNacosId(), step.getChangeSetId(), changes));
+            channel.call(
+                    new RemoteExecutionCallable(step.getToolUrl(), step.getNacosId(), step.getChangeSetId(), changes));
 
             return Collections.emptyMap();
         }
@@ -138,7 +136,8 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
         private final String changeSetId;
         private final List<NacosConfigDTO> changes;
 
-        public RemoteExecutionCallable(String toolUrl, String nacosId, String changeSetId, List<NacosConfigDTO> changes) {
+        public RemoteExecutionCallable(
+                String toolUrl, String nacosId, String changeSetId, List<NacosConfigDTO> changes) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
             this.changeSetId = changeSetId;
@@ -156,7 +155,6 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
         }
 
         @Override
-        public void checkRoles(RoleChecker checker) throws SecurityException {
-        }
+        public void checkRoles(RoleChecker checker) throws SecurityException {}
     }
 }

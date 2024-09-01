@@ -1,7 +1,6 @@
 package io.jenkins.plugins.configops.model.req;
 
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
-
 import java.io.Serializable;
 import java.util.List;
 

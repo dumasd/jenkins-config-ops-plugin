@@ -11,14 +11,13 @@ import io.jenkins.plugins.configops.model.req.NacosGetChangeSetReq;
 import io.jenkins.plugins.configops.model.resp.NacosGetChangeSetResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
-
+import io.jenkins.plugins.configops.utils.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-
 import jenkins.MasterToSlaveFileCallable;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,6 +69,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
 
         @Override
         protected NacosGetChangeSetResp run() throws Exception {
+            TaskListener taskListener = getContext().get(TaskListener.class);
+            Logger logger = new Logger("NacosChangeSetGet", taskListener);
             FilePath workspace = getContext().get(FilePath.class);
             if (Objects.isNull(workspace)) {
                 throw new IllegalArgumentException("Step workspace is null");
@@ -79,6 +80,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
                 throw new IllegalArgumentException("Change log file not found");
             }
             NacosGetChangeSetResp resp = changeLog.act(new RemoteCallable(step.getToolUrl(), step.getNacosId()));
+            logger.log("Get ChangeSet from file: %s", step.getChangeLogFile());
             if (CollectionUtils.isNotEmpty(resp.getChanges())) {
                 for (NacosConfigDTO nc : resp.getChanges()) {
                     if (StringUtils.isBlank(nc.getId())) {
@@ -86,6 +88,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
                     }
                 }
             }
+            logger.log("Found ChangeSet. id:%s", resp.getId());
             return resp;
         }
     }
