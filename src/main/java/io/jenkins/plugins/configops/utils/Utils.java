@@ -48,6 +48,12 @@ public class Utils {
         }
     }
 
+    public static void requireTrue(Boolean b, String message) {
+        if (b == null || Boolean.FALSE.equals(b)) {
+            throw new IllegalArgumentException(message);
+        }
+    }
+
     public static VirtualChannel getChannel(Launcher launcher) {
         if (launcher == null) {
             throw new IllegalArgumentException("Launcher is null");
