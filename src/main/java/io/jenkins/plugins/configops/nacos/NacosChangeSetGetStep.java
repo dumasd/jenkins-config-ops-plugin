@@ -97,7 +97,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
                     }
                 }
             }
-            logger.log("Found ChangeSet. id:%s", resp.getId());
+            logger.log("Found ChangeSet. ids:%s", Objects.toString(resp.getIds()));
             return resp;
         }
     }
