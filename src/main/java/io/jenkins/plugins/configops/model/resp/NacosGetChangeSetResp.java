@@ -19,5 +19,7 @@ public class NacosGetChangeSetResp implements Serializable {
 
     private String comment;
 
+    private List<String> ids;
+
     private List<NacosConfigDTO> changes;
 }

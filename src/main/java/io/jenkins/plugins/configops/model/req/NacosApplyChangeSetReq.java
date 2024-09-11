@@ -3,41 +3,23 @@ package io.jenkins.plugins.configops.model.req;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
 import java.io.Serializable;
 import java.util.List;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 /**
  * @author Bruce.Wu
  * @date 2024-08-30
  */
+@Setter
+@Getter
+@ToString
 public class NacosApplyChangeSetReq implements Serializable {
     private static final long serialVersionUID = -801656933583501739L;
 
     private String nacosId;
 
-    private String changeSetId;
+    private List<String> changeSetIds;
 
     private List<NacosConfigDTO> changes;
-
-    public String getNacosId() {
-        return nacosId;
-    }
-
-    public void setNacosId(String nacosId) {
-        this.nacosId = nacosId;
-    }
-
-    public String getChangeSetId() {
-        return changeSetId;
-    }
-
-    public void setChangeSetId(String changeSetId) {
-        this.changeSetId = changeSetId;
-    }
-
-    public List<NacosConfigDTO> getChanges() {
-        return changes;
-    }
-
-    public void setChanges(List<NacosConfigDTO> changes) {
-        this.changes = changes;
-    }
 }

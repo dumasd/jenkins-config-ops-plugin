@@ -49,16 +49,19 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
 
     private final String toolUrl;
 
-    private final String changeSetId;
+    private final List<String> changeSetIds;
 
     private final List<NacosConfigModifyDTO> items;
 
     @DataBoundConstructor
     public NacosChangeSetApplyStep(
-            @NonNull String nacosId, String toolUrl, String changeSetId, @NonNull List<NacosConfigModifyDTO> items) {
+            @NonNull String nacosId,
+            String toolUrl,
+            @NonNull List<String> changeSetIds,
+            @NonNull List<NacosConfigModifyDTO> items) {
         this.nacosId = nacosId;
         this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
-        this.changeSetId = changeSetId;
+        this.changeSetIds = changeSetIds;
         this.items = items;
     }
 
@@ -118,11 +121,11 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
                     .collect(Collectors.toList());
             VirtualChannel channel = Utils.getChannel(launcher);
             logger.log(
-                    "Applying change log config. toolUrl:%s, nacosId:%s, changeSetId:%s",
-                    step.getToolUrl(), step.getNacosId(), step.getChangeSetId());
+                    "Applying change log config. toolUrl:%s, nacosId:%s, changeSetIds:%s",
+                    step.getToolUrl(), step.getNacosId(), step.getChangeSetIds());
 
             channel.call(
-                    new RemoteExecutionCallable(step.getToolUrl(), step.getNacosId(), step.getChangeSetId(), changes));
+                    new RemoteExecutionCallable(step.getToolUrl(), step.getNacosId(), step.getChangeSetIds(), changes));
 
             return Collections.emptyMap();
         }
@@ -133,14 +136,14 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
         private static final long serialVersionUID = 4711346178005514552L;
         private final String toolUrl;
         private final String nacosId;
-        private final String changeSetId;
+        private final List<String> changeSetIds;
         private final List<NacosConfigDTO> changes;
 
         public RemoteExecutionCallable(
-                String toolUrl, String nacosId, String changeSetId, List<NacosConfigDTO> changes) {
+                String toolUrl, String nacosId, List<String> changeSetIds, List<NacosConfigDTO> changes) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
-            this.changeSetId = changeSetId;
+            this.changeSetIds = changeSetIds;
             this.changes = changes;
         }
 
@@ -149,7 +152,7 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
             ConfigOpsClient client = new ConfigOpsClient(toolUrl);
             NacosApplyChangeSetReq req = new NacosApplyChangeSetReq();
             req.setNacosId(nacosId);
-            req.setChangeSetId(changeSetId);
+            req.setChangeSetIds(changeSetIds);
             req.setChanges(changes);
             return client.applyChangeSet(req);
         }

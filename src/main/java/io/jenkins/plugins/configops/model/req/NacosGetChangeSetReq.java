@@ -16,4 +16,6 @@ public class NacosGetChangeSetReq implements Serializable {
     private String nacosId;
 
     private String changeLogFile;
+
+    private Integer count;
 }

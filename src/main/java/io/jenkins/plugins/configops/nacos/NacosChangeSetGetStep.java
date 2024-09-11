@@ -31,6 +31,7 @@ import org.jenkinsci.plugins.workflow.steps.StepDescriptor;
 import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 
 @Setter
 @Getter
@@ -44,11 +45,18 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
 
     private final String changeLogFile;
 
+    private Integer count;
+
     @DataBoundConstructor
     public NacosChangeSetGetStep(String nacosId, String toolUrl, String changeLogFile) {
         this.nacosId = nacosId;
         this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.changeLogFile = changeLogFile;
+    }
+
+    @DataBoundSetter
+    public void setCount(Integer count) {
+        this.count = count;
     }
 
     @Override
@@ -79,7 +87,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
             if (!changeLog.exists()) {
                 throw new IllegalArgumentException("Change log file not found");
             }
-            NacosGetChangeSetResp resp = changeLog.act(new RemoteCallable(step.getToolUrl(), step.getNacosId()));
+            NacosGetChangeSetResp resp =
+                    changeLog.act(new RemoteCallable(step.getToolUrl(), step.getNacosId(), step.getCount()));
             logger.log("Get ChangeSet from file: %s", step.getChangeLogFile());
             if (CollectionUtils.isNotEmpty(resp.getChanges())) {
                 for (NacosConfigDTO nc : resp.getChanges()) {
@@ -99,16 +108,21 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
         private final String toolUrl;
         private final String nacosId;
 
-        private RemoteCallable(String toolUrl, String nacosId) {
+        private final Integer count;
+
+        private RemoteCallable(String toolUrl, String nacosId, Integer count) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
+            this.count = count;
         }
 
         @Override
         public NacosGetChangeSetResp invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
             ConfigOpsClient client = new ConfigOpsClient(toolUrl);
-            NacosGetChangeSetReq nacosGetChangeSetReq =
-                    new NacosGetChangeSetReq().setNacosId(nacosId).setChangeLogFile(f.getAbsolutePath());
+            NacosGetChangeSetReq nacosGetChangeSetReq = new NacosGetChangeSetReq()
+                    .setNacosId(nacosId)
+                    .setChangeLogFile(f.getAbsolutePath())
+                    .setCount(count);
             return client.getChangeSet(nacosGetChangeSetReq);
         }
     }
