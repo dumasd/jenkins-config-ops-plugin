@@ -47,6 +47,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
 
     private Integer count;
 
+    private String contexts;
+
     @DataBoundConstructor
     public NacosChangeSetGetStep(String nacosId, String toolUrl, String changeLogFile) {
         this.nacosId = nacosId;
@@ -57,6 +59,11 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
     @DataBoundSetter
     public void setCount(Integer count) {
         this.count = count;
+    }
+
+    @DataBoundSetter
+    public void setContexts(String contexts) {
+        this.contexts = contexts;
     }
 
     @Override
@@ -87,8 +94,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
             if (!changeLog.exists()) {
                 throw new IllegalArgumentException("Change log file not found");
             }
-            NacosGetChangeSetResp resp =
-                    changeLog.act(new RemoteCallable(step.getToolUrl(), step.getNacosId(), step.getCount()));
+            NacosGetChangeSetResp resp = changeLog.act(
+                    new RemoteCallable(step.getToolUrl(), step.getNacosId(), step.getCount(), step.getContexts()));
             logger.log("Get ChangeSet from file: %s", step.getChangeLogFile());
             if (CollectionUtils.isNotEmpty(resp.getChanges())) {
                 for (NacosConfigDTO nc : resp.getChanges()) {
@@ -107,13 +114,14 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
         private static final long serialVersionUID = -5550176413772105947L;
         private final String toolUrl;
         private final String nacosId;
-
         private final Integer count;
+        private final String contexts;
 
-        private RemoteCallable(String toolUrl, String nacosId, Integer count) {
+        private RemoteCallable(String toolUrl, String nacosId, Integer count, String contexts) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
             this.count = count;
+            this.contexts = contexts;
         }
 
         @Override
@@ -122,6 +130,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
             NacosGetChangeSetReq nacosGetChangeSetReq = new NacosGetChangeSetReq()
                     .setNacosId(nacosId)
                     .setChangeLogFile(f.getAbsolutePath())
+                    .setContexts(contexts)
                     .setCount(count);
             return client.getChangeSet(nacosGetChangeSetReq);
         }

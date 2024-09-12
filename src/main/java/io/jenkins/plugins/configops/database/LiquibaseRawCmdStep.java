@@ -123,11 +123,11 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
                     step.getToolUrl(), step.getDatabaseId(), step.getCommand(), step.getArgs()));
 
             logger.log("Liquibase run command return code: %s", resp.getRetcode());
-            if (StringUtils.isNotBlank(resp.getStdout())) {
-                logger.log("Liquibase run command stdout:\n%s", resp.getStdout());
-            }
             if (StringUtils.isNotBlank(resp.getStderr())) {
                 logger.log("Liquibase run command stderr:\n%s", resp.getStderr());
+            }
+            if (StringUtils.isNotBlank(resp.getStdout())) {
+                logger.log("Liquibase run command stdout:\n%s", resp.getStdout());
             }
             if (!resp.isSuccess()) {
                 throw new ConfigOpsException("Execute liquibase run command unsuccessful");

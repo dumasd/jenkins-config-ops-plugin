@@ -95,11 +95,11 @@ public class LiquibaseUpdateStep extends Step implements Serializable {
                     changelogRootPath.act(new RemoteExecutionCallable(step.getToolUrl(), step.getDatabaseId()));
 
             logger.log("Liquibase update return code: %s", resp.getRetcode());
-            if (StringUtils.isNotBlank(resp.getStdout())) {
-                logger.log("Liquibase update stdout:\n%s", resp.getStdout());
-            }
             if (StringUtils.isNotBlank(resp.getStderr())) {
                 logger.log("Liquibase update stderr:\n%s", resp.getStderr());
+            }
+            if (StringUtils.isNotBlank(resp.getStdout())) {
+                logger.log("Liquibase update stdout:\n%s", resp.getStdout());
             }
             if (!resp.isSuccess()) {
                 throw new ConfigOpsException("Execute liquibase update unsuccessful");
