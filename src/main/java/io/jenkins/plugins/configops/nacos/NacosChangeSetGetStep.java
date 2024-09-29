@@ -15,6 +15,7 @@ import io.jenkins.plugins.configops.utils.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -39,20 +40,26 @@ import org.kohsuke.stapler.DataBoundSetter;
 public class NacosChangeSetGetStep extends Step implements Serializable {
     private static final long serialVersionUID = 5373505661508888051L;
 
-    private final String nacosId;
-
     private final String toolUrl;
 
+    private final String nacosId;
+
     private final String changeLogFile;
+    /**
+     * 变量
+     */
+    private HashMap<String, String> vars;
+    /**
+     * 指定上下文
+     */
+    private String contexts;
 
     private Integer count;
 
-    private String contexts;
-
     @DataBoundConstructor
     public NacosChangeSetGetStep(String nacosId, String toolUrl, String changeLogFile) {
-        this.nacosId = nacosId;
         this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
+        this.nacosId = nacosId;
         this.changeLogFile = changeLogFile;
     }
 
@@ -64,6 +71,11 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
     @DataBoundSetter
     public void setContexts(String contexts) {
         this.contexts = contexts;
+    }
+
+    @DataBoundSetter
+    public void setVars(HashMap<String, String> vars) {
+        this.vars = vars;
     }
 
     @Override
@@ -94,8 +106,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
             if (!changeLog.exists()) {
                 throw new IllegalArgumentException("Change log file not found");
             }
-            NacosGetChangeSetResp resp = changeLog.act(
-                    new RemoteCallable(step.getToolUrl(), step.getNacosId(), step.getCount(), step.getContexts()));
+            NacosGetChangeSetResp resp = changeLog.act(new RemoteCallable(
+                    step.getToolUrl(), step.getNacosId(), step.getCount(), step.getContexts(), step.getVars()));
             logger.log("Get ChangeSet from file: %s", step.getChangeLogFile());
             if (CollectionUtils.isNotEmpty(resp.getChanges())) {
                 for (NacosConfigDTO nc : resp.getChanges()) {
@@ -116,12 +128,15 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
         private final String nacosId;
         private final Integer count;
         private final String contexts;
+        private final HashMap<String, String> vars;
 
-        private RemoteCallable(String toolUrl, String nacosId, Integer count, String contexts) {
+        private RemoteCallable(
+                String toolUrl, String nacosId, Integer count, String contexts, HashMap<String, String> vars) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
             this.count = count;
             this.contexts = contexts;
+            this.vars = vars;
         }
 
         @Override
@@ -131,7 +146,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
                     .setNacosId(nacosId)
                     .setChangeLogFile(f.getAbsolutePath())
                     .setContexts(contexts)
-                    .setCount(count);
+                    .setCount(count)
+                    .setVars(vars);
             return client.getChangeSet(nacosGetChangeSetReq);
         }
     }
