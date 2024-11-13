@@ -1,29 +1,40 @@
 package io.jenkins.plugins.configops.nacos;
 
+import static hudson.model.ChoiceParameterDefinition.CHOICES_DELIMITER;
+
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
+import hudson.util.FormValidation;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
 import io.jenkins.plugins.configops.model.req.NacosGetChangeSetReq;
 import io.jenkins.plugins.configops.model.resp.NacosGetChangeSetResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
+import io.jenkins.plugins.configops.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import jenkins.MasterToSlaveFileCallable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -33,6 +44,9 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousNonBlockingStepExecution;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
+import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.verb.POST;
 
 @Setter
 @Getter
@@ -76,6 +90,24 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
     @DataBoundSetter
     public void setVars(HashMap<String, String> vars) {
         this.vars = vars;
+    }
+
+    @DataBoundSetter
+    public void setVars(String vars) {
+        String strippedChoices = StringUtils.trim(vars);
+        HashMap<String, String> result = new LinkedHashMap<>();
+        if (StringUtils.isNotBlank(strippedChoices)) {
+            List<String> choices = Arrays.stream(strippedChoices.split(CHOICES_DELIMITER))
+                    .map(StringUtils::trim)
+                    .filter(StringUtils::isNotBlank)
+                    .distinct()
+                    .collect(Collectors.toList());
+            for (String choice : choices) {
+                String[] kv = choice.split(":");
+                result.put(kv[0], kv[1]);
+            }
+        }
+        this.vars = result;
     }
 
     @Override
@@ -173,5 +205,69 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
         public String getFunctionName() {
             return "nacosChangeSetGet";
         }
+
+        @POST
+        public FormValidation doCheckNacosId(@QueryParameter("nacosId") String nacosId) {
+            if (Utils.isNullOrEmpty(nacosId)) {
+                return FormValidation.error("NacosId is required");
+            }
+            return FormValidation.ok();
+        }
+
+        @POST
+        public FormValidation doCheckChangeLogFile(@QueryParameter("changeLogFile") String changeLogFile) {
+            if (Utils.isNullOrEmpty(changeLogFile)) {
+                return FormValidation.error("ChangeLogFile is required");
+            }
+            return FormValidation.ok();
+        }
+
+        @POST
+        public FormValidation doCheckVars(@QueryParameter("vars") String vars) {
+            if (!areValidVars(vars)) {
+                return FormValidation.error("Vars is invalid");
+            }
+            return FormValidation.ok();
+        }
+
+        @Override
+        public Step newInstance(@Nullable StaplerRequest req, @NonNull JSONObject formData) throws FormException {
+            String nacosId = formData.getString("nacosId");
+            String changeLogFile = formData.getString("changeLogFile");
+            Object contexts = formData.getOrDefault("contexts", null);
+            Object count = formData.getOrDefault("count", null);
+            Object vars = formData.getOrDefault("vars", null);
+            NacosChangeSetGetStep step = new NacosChangeSetGetStep(nacosId, null, changeLogFile);
+            if (Objects.nonNull(contexts) && StringUtils.isNotBlank(contexts.toString())) {
+                step.setContexts(contexts.toString());
+            }
+
+            if (Objects.nonNull(count) && StringUtils.isNotBlank(count.toString())) {
+                step.setCount(Integer.parseInt(count.toString()));
+            }
+
+            if (Objects.nonNull(vars)) {
+                step.setVars(vars.toString());
+            }
+            return step;
+        }
+    }
+
+    public static boolean areValidVars(String value) {
+        String strippedChoices = StringUtils.trim(value);
+        if (StringUtils.isBlank(strippedChoices)) {
+            return true;
+        }
+        String[] choices = strippedChoices.split(CHOICES_DELIMITER);
+        if (ArrayUtils.isEmpty(choices)) {
+            return true;
+        }
+        for (String choice : choices) {
+            String[] pair = choice.split(":");
+            if (pair.length != 2) {
+                return false;
+            }
+        }
+        return true;
     }
 }

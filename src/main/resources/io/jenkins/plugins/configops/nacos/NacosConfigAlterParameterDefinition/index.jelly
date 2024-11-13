@@ -35,6 +35,7 @@
         <div name="value" id="nacosConfigEditPanes">
         </div>
         <div class="operate-form">
+            <input id="selectAllBtn" type="button" value="Select ALL" class="form-item-1"/>
             <input id="patchBtn" type="button" value="Patch" class="form-item-1" disabled="true"/>
             <input id="deleteBtn" type="button" value="Delete" class="form-item-1" disabled="true"/>
             <input id="resetBtn" type="button" value="Reset" class="form-item-1" disabled="true"/>
@@ -75,6 +76,7 @@
     <script type="text/javascript">
         <![CDATA[
         var BASE_URL = '${rootURL}/descriptorByName/io.jenkins.plugins.configops.nacos.NacosConfigAlterParameterDefinition'
+
         function onTabClick(option) {
             const currentInput = document.querySelector("#nacosConfigCurrentInput-" + option);
             const patchInput = document.querySelector("#nacosConfigPatchInput-" + option);
@@ -234,6 +236,9 @@
             highlightDifferences: true,
             connect: "align"
         });
+        // 当前值设置为不可编辑
+        editor.edit.setOption("readOnly", true);
+        editor.rightOriginal().setOption("readOnly", true);
 
         editor.edit.on('change', function (cm, changeObj) {
             if (changeObj.origin === 'setValue') {
@@ -256,7 +261,7 @@
         });
         patchEditor.setSize(null, "240px");
 
-        patchEditor.on('change', function(cm, changeObj) {
+        patchEditor.on('change', function (cm, changeObj) {
             if (changeObj.origin === 'setValue') {
                 cm.clearHistory();
                 return;
@@ -273,11 +278,12 @@
             mode: 'text',
             styleActiveLine: true,
             highlightDifferences: true,
+            readOnly: true,
             connect: "align"
         });
         deleteEditor.setSize(null, "240px");
 
-        deleteEditor.on('change', function(cm, changeObj) {
+        deleteEditor.on('change', function (cm, changeObj) {
             if (changeObj.origin === 'setValue') {
                 cm.clearHistory();
                 return;
@@ -286,9 +292,11 @@
             deleteInput.value = cm.getValue();
         });
 
+        const selectAllBtn = document.getElementById("selectAllBtn");
         const patchBtn = document.getElementById("patchBtn");
         const deleteBtn = document.getElementById("deleteBtn");
         const resetBtn = document.getElementById("resetBtn");
+
 
         resetBtn.addEventListener("click", function () {
             const currentId = editor.edit.currentId;
@@ -311,6 +319,14 @@
             editNextContent("/deleteContent", deleteEditor.getValue());
         });
 
+        selectAllBtn.addEventListener("click", function () {
+            const nacosConfigsSelect = document.querySelector("#nacosConfigsSelect");
+            for (let option of nacosConfigsSelect.options) {
+                option.selected = true;
+            }
+            updateSelectedNacosConfigs(nacosConfigsSelect);
+        });
+
         function objectToUrlFormEncoded(parameters) {
             // https://stackoverflow.com/a/37562814/4951015
             // Code could be simplified if support for HTMLUnit is dropped
@@ -331,7 +347,7 @@
             }
             const formatInput = document.querySelector("#nacosConfigCurrentType-" + editor.edit.currentId);
             const format = formatInput.value;
-            const content = editor.edit.getValue();
+            const content = editor.rightOriginal().getValue();
             fetch(BASE_URL + path, {
                 method: "post",
                 headers: crumb.wrap({

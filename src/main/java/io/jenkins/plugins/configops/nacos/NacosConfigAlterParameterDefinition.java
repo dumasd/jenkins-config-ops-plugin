@@ -28,6 +28,7 @@ import net.sf.json.JSONObject;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.bind.JavaScriptMethod;
@@ -40,6 +41,7 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
     private static final long serialVersionUID = -6182842383814244217L;
 
     private List<NacosConfigDTO> items;
+    private boolean selectAll = true;
 
     @DataBoundConstructor
     public NacosConfigAlterParameterDefinition(String name, @NonNull List<NacosConfigDTO> items) {
@@ -51,6 +53,11 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
             }
             return o1.fullName().compareTo(o2.fullName());
         });
+    }
+
+    @DataBoundSetter
+    public void setSelectAll(boolean selectAll) {
+        this.selectAll = selectAll;
     }
 
     public int getItemSelectSize() {

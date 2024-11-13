@@ -13,6 +13,8 @@ import lombok.ToString;
 public class DatabaseRunLiquibaseReq implements Serializable {
     private static final long serialVersionUID = -2239214531976180856L;
 
+    private String changeLogFile;
+
     private String dbId;
 
     private String cwd;

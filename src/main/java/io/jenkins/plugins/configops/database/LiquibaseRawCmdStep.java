@@ -59,10 +59,6 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
      */
     private final String databaseId;
     /**
-     * 在哪个路径下执行
-     */
-    private String cwd;
-    /**
      * Liquibase命令
      */
     private final String command;
@@ -70,6 +66,14 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
      * Liquibase命令参数
      */
     private final String args;
+    /**
+     * changeLogFile文件
+     */
+    private String changeLogFile;
+    /**
+     * 在哪个路径下执行
+     */
+    private String cwd;
 
     @DataBoundConstructor
     public LiquibaseRawCmdStep(
@@ -79,6 +83,16 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
         this.cwd = cwd;
         this.command = command;
         this.args = args;
+    }
+
+    @DataBoundSetter
+    public void setToolUrl(String toolUrl) {
+        this.toolUrl = toolUrl;
+    }
+
+    @DataBoundSetter
+    public void setChangeLogFile(String changeLogFile) {
+        this.changeLogFile = changeLogFile;
     }
 
     @DataBoundSetter
@@ -113,6 +127,12 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
                 cwdPath = workspace.child(step.getCwd());
             }
 
+            String changeLogFile = null;
+            if (StringUtils.isNotBlank(step.getChangeLogFile())) {
+                FilePath changeLogFilePath = workspace.child(step.getChangeLogFile());
+                changeLogFile = changeLogFilePath.getRemote();
+            }
+
             Logger logger = new Logger("LiquibaseCommand", taskListener);
 
             logger.log(
@@ -120,7 +140,7 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
                     Util.fixNull(step.getCwd()), step.getCommand(), Util.fixNull(step.getArgs()));
 
             DatabaseRunLiquibaseResp resp = cwdPath.act(new RemoteExecutionCallable(
-                    step.getToolUrl(), step.getDatabaseId(), step.getCommand(), step.getArgs()));
+                    step.getToolUrl(), step.getDatabaseId(), step.getCommand(), step.getArgs(), changeLogFile));
 
             logger.log("Liquibase run command return code: %s", resp.getRetcode());
             if (StringUtils.isNotBlank(resp.getStderr())) {
@@ -142,12 +162,15 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
         private final String databaseId;
         private final String command;
         private final String args;
+        private final String changeLogFile;
 
-        public RemoteExecutionCallable(String toolUrl, String databaseId, String command, String args) {
+        public RemoteExecutionCallable(
+                String toolUrl, String databaseId, String command, String args, String changeLogFile) {
             this.toolUrl = toolUrl;
             this.databaseId = databaseId;
             this.command = command;
             this.args = args;
+            this.changeLogFile = changeLogFile;
         }
 
         @Override
@@ -162,6 +185,7 @@ public class LiquibaseRawCmdStep extends Step implements Serializable {
                     .cwd(f.getAbsolutePath())
                     .command(command)
                     .args(args)
+                    .changeLogFile(changeLogFile)
                     .build();
             return client.databaseRunLiquibase(req);
         }
