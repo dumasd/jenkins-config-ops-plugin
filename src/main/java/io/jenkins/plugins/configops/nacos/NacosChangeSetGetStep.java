@@ -92,7 +92,6 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
         this.vars = vars;
     }
 
-    @DataBoundSetter
     public void setVars(String vars) {
         String strippedChoices = StringUtils.trim(vars);
         HashMap<String, String> result = new LinkedHashMap<>();
