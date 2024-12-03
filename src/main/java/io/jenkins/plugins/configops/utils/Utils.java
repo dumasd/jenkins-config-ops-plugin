@@ -1,15 +1,21 @@
 package io.jenkins.plugins.configops.utils;
 
+import static hudson.model.ChoiceParameterDefinition.CHOICES_DELIMITER;
+
 import hudson.Launcher;
 import hudson.remoting.VirtualChannel;
 import hudson.util.VersionNumber;
 import java.io.File;
 import java.io.PrintStream;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -114,5 +120,43 @@ public class Utils {
                 break;
             }
         }
+    }
+
+    public static boolean isValidChangeLogVars(String value) {
+        String strippedChoices = StringUtils.trim(value);
+        if (StringUtils.isBlank(strippedChoices)) {
+            return true;
+        }
+        String[] choices = strippedChoices.split(CHOICES_DELIMITER);
+        if (ArrayUtils.isEmpty(choices)) {
+            return true;
+        }
+        for (String choice : choices) {
+            String[] pair = choice.split(":");
+            if (pair.length != 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static HashMap<String, String> parseChangeLogVars(String vars) {
+        HashMap<String, String> result = new LinkedHashMap<>();
+        if (isNullOrEmpty(vars)) {
+            return result;
+        }
+        String strippedChoices = StringUtils.trim(vars);
+        if (StringUtils.isNotBlank(strippedChoices)) {
+            List<String> choices = Arrays.stream(strippedChoices.split(CHOICES_DELIMITER))
+                    .map(StringUtils::trim)
+                    .filter(StringUtils::isNotBlank)
+                    .distinct()
+                    .collect(Collectors.toList());
+            for (String choice : choices) {
+                String[] kv = choice.split(":");
+                result.put(kv[0], kv[1]);
+            }
+        }
+        return result;
     }
 }

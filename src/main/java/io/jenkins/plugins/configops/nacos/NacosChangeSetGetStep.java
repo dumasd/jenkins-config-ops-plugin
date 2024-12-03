@@ -1,7 +1,5 @@
 package io.jenkins.plugins.configops.nacos;
 
-import static hudson.model.ChoiceParameterDefinition.CHOICES_DELIMITER;
-
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import hudson.Extension;
@@ -20,21 +18,16 @@ import io.jenkins.plugins.configops.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import jenkins.MasterToSlaveFileCallable;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -93,20 +86,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
     }
 
     public void setVars(String vars) {
-        String strippedChoices = StringUtils.trim(vars);
-        HashMap<String, String> result = new LinkedHashMap<>();
-        if (StringUtils.isNotBlank(strippedChoices)) {
-            List<String> choices = Arrays.stream(strippedChoices.split(CHOICES_DELIMITER))
-                    .map(StringUtils::trim)
-                    .filter(StringUtils::isNotBlank)
-                    .distinct()
-                    .collect(Collectors.toList());
-            for (String choice : choices) {
-                String[] kv = choice.split(":");
-                result.put(kv[0], kv[1]);
-            }
-        }
-        this.vars = result;
+        this.vars = Utils.parseChangeLogVars(vars);
     }
 
     @Override
@@ -129,10 +109,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
         protected NacosGetChangeSetResp run() throws Exception {
             TaskListener taskListener = getContext().get(TaskListener.class);
             Logger logger = new Logger("NacosChangeSetGet", taskListener);
-            FilePath workspace = getContext().get(FilePath.class);
-            if (Objects.isNull(workspace)) {
-                throw new IllegalArgumentException("Step workspace is null");
-            }
+            FilePath workspace = Objects.requireNonNull(getContext().get(FilePath.class), "Step workspace is null");
             FilePath changeLog = workspace.child(step.getChangeLogFile());
             if (!changeLog.exists()) {
                 throw new IllegalArgumentException("Change log file not found");
@@ -223,7 +200,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
 
         @POST
         public FormValidation doCheckVars(@QueryParameter("vars") String vars) {
-            if (!areValidVars(vars)) {
+            if (!Utils.isValidChangeLogVars(vars)) {
                 return FormValidation.error("Vars is invalid");
             }
             return FormValidation.ok();
@@ -250,23 +227,5 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
             }
             return step;
         }
-    }
-
-    public static boolean areValidVars(String value) {
-        String strippedChoices = StringUtils.trim(value);
-        if (StringUtils.isBlank(strippedChoices)) {
-            return true;
-        }
-        String[] choices = strippedChoices.split(CHOICES_DELIMITER);
-        if (ArrayUtils.isEmpty(choices)) {
-            return true;
-        }
-        for (String choice : choices) {
-            String[] pair = choice.split(":");
-            if (pair.length != 2) {
-                return false;
-            }
-        }
-        return true;
     }
 }
