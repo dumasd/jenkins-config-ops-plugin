@@ -12,6 +12,7 @@ import io.jenkins.plugins.configops.model.dto.ElasticsearchChangeDTO;
 import io.jenkins.plugins.configops.model.dto.ElasticsearchChangeSetDTO;
 import io.jenkins.plugins.configops.model.req.ElasticsearchChangeSetReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
+import io.jenkins.plugins.configops.utils.ConfigOpsException;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
@@ -159,9 +160,15 @@ public class ElasticsearchChangeSetApplyStep extends Step implements Serializabl
                     }
                 }
             }
+
             logger.log(
                     "Run summary\nChangeset num:       %d\nSuccess change num:  %d\nFailure change num:  %d\nSkip change num:     %d",
                     changeSetNum, successNum, failNum, skipNum);
+
+            if (failNum > 0) {
+                throw new ConfigOpsException("Run elasticsearch changelog unsuccessful");
+            }
+
             return result;
         }
     }
