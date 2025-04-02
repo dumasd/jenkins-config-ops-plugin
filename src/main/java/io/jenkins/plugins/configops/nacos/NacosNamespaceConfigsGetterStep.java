@@ -12,6 +12,10 @@ import io.jenkins.plugins.configops.model.req.NacosGetConfigsReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Utils;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
@@ -23,11 +27,6 @@ import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 @Setter
 @Getter
@@ -83,14 +82,14 @@ public class NacosNamespaceConfigsGetterStep extends Step implements Serializabl
 
         @Override
         public List<NacosConfigDTO> call() throws Exception {
-            ConfigOpsClient client = new ConfigOpsClient(StringUtils.defaultIfBlank(step.getToolUrl(), Constants.DEFAULT_TOOL_URL));
+            ConfigOpsClient client =
+                    new ConfigOpsClient(StringUtils.defaultIfBlank(step.getToolUrl(), Constants.DEFAULT_TOOL_URL));
             NacosGetConfigsReq req = new NacosGetConfigsReq(step.getNacosId(), step.getNamespaces());
             return client.getNacosConfigs(req);
         }
 
         @Override
-        public void checkRoles(RoleChecker checker) throws SecurityException {
-        }
+        public void checkRoles(RoleChecker checker) throws SecurityException {}
     }
 
     @Extension

@@ -25,7 +25,6 @@ import lombok.ToString;
 import lombok.extern.java.Log;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
@@ -44,8 +43,8 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
     private boolean selectAll = true;
 
     @DataBoundConstructor
-    public NacosConfigAlterParameterDefinition(String name, @NonNull List<NacosConfigDTO> items) {
-        super(StringUtils.defaultIfBlank(name, "NACOS_CONFIG_ALTER"));
+    public NacosConfigAlterParameterDefinition(@NonNull List<NacosConfigDTO> items) {
+        super("NACOS_CONFIG_ALTER");
         this.items = new ArrayList<>(items);
         this.items.sort((o1, o2) -> {
             if (o1 == o2) {

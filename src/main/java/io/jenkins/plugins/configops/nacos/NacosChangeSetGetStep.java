@@ -15,6 +15,13 @@ import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 import jenkins.MasterToSlaveFileCallable;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,14 +40,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 
 @Setter
 @Getter
@@ -154,7 +153,8 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
 
         @Override
         public NacosGetChangeSetResp invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            ConfigOpsClient client = new ConfigOpsClient(StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL));
+            ConfigOpsClient client =
+                    new ConfigOpsClient(StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL));
             NacosGetChangeSetReq nacosGetChangeSetReq = new NacosGetChangeSetReq()
                     .setNacosId(nacosId)
                     .setChangeLogFile(f.getAbsolutePath())
