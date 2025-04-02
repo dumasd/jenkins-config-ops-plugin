@@ -15,13 +15,6 @@ import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
-import java.io.File;
-import java.io.IOException;
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
 import jenkins.MasterToSlaveFileCallable;
 import lombok.Getter;
 import lombok.Setter;
@@ -41,13 +34,21 @@ import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest;
 import org.kohsuke.stapler.verb.POST;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+
 @Setter
 @Getter
 @ToString
 public class NacosChangeSetGetStep extends Step implements Serializable {
     private static final long serialVersionUID = 5373505661508888051L;
 
-    private final String toolUrl;
+    private String toolUrl = Constants.DEFAULT_TOOL_URL;
 
     private final String nacosId;
 
@@ -64,10 +65,14 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
     private Integer count;
 
     @DataBoundConstructor
-    public NacosChangeSetGetStep(String nacosId, String toolUrl, String changeLogFile) {
-        this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
+    public NacosChangeSetGetStep(String nacosId, String changeLogFile) {
         this.nacosId = nacosId;
         this.changeLogFile = changeLogFile;
+    }
+
+    @DataBoundSetter
+    public void setToolUrl(String toolUrl) {
+        this.toolUrl = toolUrl;
     }
 
     @DataBoundSetter
@@ -149,7 +154,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
 
         @Override
         public NacosGetChangeSetResp invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            ConfigOpsClient client = new ConfigOpsClient(toolUrl);
+            ConfigOpsClient client = new ConfigOpsClient(StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL));
             NacosGetChangeSetReq nacosGetChangeSetReq = new NacosGetChangeSetReq()
                     .setNacosId(nacosId)
                     .setChangeLogFile(f.getAbsolutePath())
@@ -213,7 +218,7 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
             Object contexts = formData.getOrDefault("contexts", null);
             Object count = formData.getOrDefault("count", null);
             Object vars = formData.getOrDefault("vars", null);
-            NacosChangeSetGetStep step = new NacosChangeSetGetStep(nacosId, null, changeLogFile);
+            NacosChangeSetGetStep step = new NacosChangeSetGetStep(nacosId, changeLogFile);
             if (Objects.nonNull(contexts) && StringUtils.isNotBlank(contexts.toString())) {
                 step.setContexts(contexts.toString());
             }

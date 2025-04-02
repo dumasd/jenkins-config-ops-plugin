@@ -15,13 +15,6 @@ import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
-import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -33,6 +26,15 @@ import org.jenkinsci.plugins.workflow.steps.StepExecution;
 import org.jenkinsci.plugins.workflow.steps.SynchronousStepExecution;
 import org.jenkinsci.remoting.RoleChecker;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.DataBoundSetter;
+
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Bruce.Wu
@@ -47,7 +49,7 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
 
     private final String nacosId;
 
-    private final String toolUrl;
+    private String toolUrl = Constants.DEFAULT_TOOL_URL;
 
     private final List<String> changeSetIds;
 
@@ -56,13 +58,16 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
     @DataBoundConstructor
     public NacosChangeSetApplyStep(
             @NonNull String nacosId,
-            String toolUrl,
             @NonNull List<String> changeSetIds,
             @NonNull List<NacosConfigModifyDTO> items) {
         this.nacosId = nacosId;
-        this.toolUrl = StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL);
         this.changeSetIds = changeSetIds;
         this.items = items;
+    }
+
+    @DataBoundSetter
+    public void setToolUrl(String toolUrl) {
+        this.toolUrl = toolUrl;
     }
 
     @Override
@@ -149,7 +154,7 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
 
         @Override
         public String call() throws Exception {
-            ConfigOpsClient client = new ConfigOpsClient(toolUrl);
+            ConfigOpsClient client = new ConfigOpsClient(StringUtils.defaultIfBlank(toolUrl, Constants.DEFAULT_TOOL_URL));
             NacosApplyChangeSetReq req = new NacosApplyChangeSetReq();
             req.setNacosId(nacosId);
             req.setChangeSetIds(changeSetIds);
@@ -158,6 +163,7 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
         }
 
         @Override
-        public void checkRoles(RoleChecker checker) throws SecurityException {}
+        public void checkRoles(RoleChecker checker) throws SecurityException {
+        }
     }
 }

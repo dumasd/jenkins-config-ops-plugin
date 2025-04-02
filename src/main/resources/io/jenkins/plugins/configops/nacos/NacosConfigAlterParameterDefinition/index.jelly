@@ -4,9 +4,9 @@
     <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
           type="text/css"/>
 
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/lib/codemirror.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/addon/merge/merge.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.17/addon/lint/lint.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.18/lib/codemirror.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.18/addon/merge/merge.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.18/addon/lint/lint.css"/>
 
     <div style="display: none;">
         <j:forEach items="${it.getItems()}" var="item" varStatus="status">
@@ -62,16 +62,16 @@
     </div>
 
     <script src="https://unpkg.com/diff-match-patch@1.0.5/index.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/lib/codemirror.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/addon/merge/merge.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/mode/yaml/yaml.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/mode/properties/properties.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/mode/json/json.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/mode/xml/xml.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/addon/lint/lint.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/addon/lint/json-lint.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/lib/codemirror.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/addon/merge/merge.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/mode/yaml/yaml.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/mode/properties/properties.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/mode/json/json.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/mode/xml/xml.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/addon/lint/lint.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/addon/lint/json-lint.js"/>
     <script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.17/addon/lint/yaml-lint.js"/>
+    <script src="https://unpkg.com/codemirror@5.65.18/addon/lint/yaml-lint.js"/>
 
     <script type="text/javascript">
         <![CDATA[
