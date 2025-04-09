@@ -1,12 +1,15 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout"
-         xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
     <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
           type="text/css"/>
 
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.18/lib/codemirror.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.18/addon/merge/merge.css"/>
-    <link rel="stylesheet" href="https://unpkg.com/codemirror@5.65.18/addon/lint/lint.css"/>
+    <link rel="stylesheet"
+          href="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/lib/codemirror.css"/>
+    <link rel="stylesheet"
+          href="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/addon/merge/merge.css"/>
+    <link rel="stylesheet"
+          href="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/addon/lint/lint.css"/>
 
     <div style="display: none;">
         <j:forEach items="${it.getItems()}" var="item" varStatus="status">
@@ -19,14 +22,18 @@
         </j:forEach>
     </div>
 
-    <f:entry title="Config Select:" class="form-item-100">
-        <select id="nacosConfigsSelect" multiple="multiple" size="${it.getItemSelectSize()}" disabled="true"
-                onchange="updateSelectedNacosConfigs(this)">
-            <j:forEach items="${it.getItems()}" var="item" varStatus="status">
-                <f:option value="${item.id}">${item.fullName()}</f:option>
-            </j:forEach>
-        </select>
+    <f:entry title="Configuration Select (Namespace/Group/DataID)">
+        <div class="config-select">
+            <select id="nacosConfigsSelect" multiple="multiple" size="${it.getItemSelectSize()}" disabled="true"
+                    onchange="updateSelectedNacosConfigs(this)">
+                <j:forEach items="${it.getItems()}" var="item" varStatus="status">
+                    <f:option value="${item.id}">${item.fullName()}</f:option>
+                </j:forEach>
+            </select>
+            <input class="select-all-btn" id="selectAllBtn" type="button" value="Select All"/>
+        </div>
     </f:entry>
+
 
     <div name="parameter" id="nacosConfigEditMain" style="margin-top: 5px;">
         <input type="hidden" name="name" value="${h.escape(it.name)}"/>
@@ -35,43 +42,43 @@
         <div name="value" id="nacosConfigEditPanes">
         </div>
         <div class="operate-form">
-            <input id="selectAllBtn" type="button" value="Select ALL" class="form-item-1"/>
             <input id="patchBtn" type="button" value="Patch" class="form-item-1" disabled="true"/>
             <input id="deleteBtn" type="button" value="Delete" class="form-item-1" disabled="true"/>
             <input id="resetBtn" type="button" value="Reset" class="form-item-1" disabled="true"/>
         </div>
 
         <div class="operate-form" style="margin-top: 10px">
-            <div style="width:50%">
-                <span>Patch Content</span>
-                <div id="nacosConfigPatchEditorContainer" style="width:100%">
+            <div style="width:48%;">
+                <span class="title">Patch Content</span>
+                <div id="nacosConfigPatchEditorContainer" style="width:100%; margin-top: 5px">
                 </div>
             </div>
 
-            <div style="width:50%">
-                <span>Delete Content</span>
-                <div id="nacosConfigDeleteEditorContainer" style="width:100%">
+            <div style="width:48%; margin-left: 10px">
+                <span class="title">Delete Content</span>
+                <div id="nacosConfigDeleteEditorContainer" style="width:100%; margin-top: 5px">
                 </div>
             </div>
         </div>
 
-        <f:entry title="Change Comparison(After/Before):" class="form-item-100">
-            <div style="height: 410px" id="nacosConfigMergeEditorContainer">
+        <f:entry title="Configuration Change Comparison (Left-side:Modified content / Right-side:Current content)"
+                 class="form-item-100">
+            <div style="height: 450px" id="nacosConfigMergeEditorContainer">
             </div>
         </f:entry>
     </div>
 
-    <script src="https://unpkg.com/diff-match-patch@1.0.5/index.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/lib/codemirror.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/addon/merge/merge.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/mode/yaml/yaml.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/mode/properties/properties.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/mode/json/json.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/mode/xml/xml.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/addon/lint/lint.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/addon/lint/json-lint.js"/>
-    <script src="https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js"/>
-    <script src="https://unpkg.com/codemirror@5.65.18/addon/lint/yaml-lint.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/diff-match-patch/1.0.5/index.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/lib/codemirror.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/addon/merge/merge.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/mode/yaml/yaml.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/mode/properties/properties.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/mode/javascript/javascript.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/mode/xml/xml.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/addon/lint/lint.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/addon/lint/json-lint.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/codemirror/5.65.19/addon/lint/yaml-lint.js"/>
+    <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/js-yaml/4.1.0/dist/js-yaml.min.js"/>
 
     <script type="text/javascript">
         <![CDATA[
@@ -85,22 +92,21 @@
             const nextContentInput = document.querySelector("#nacosConfigNextInput-" + option);
             const nextFormatInput = document.querySelector("#nacosConfigNextFormatInput-" + option);
 
-            const format = nextFormatInput.value;
-
             editor.edit.currentId = option;
             editor.edit.setValue(nextContentInput.value)
             editor.rightOriginal().setValue(currentInput.value);
 
-            editor.edit.setOption('mode', format);
-            editor.rightOriginal().setOption('mode', format);
+            const mode = nextFormatInput.value === "json" ? "javascript": nextFormatInput.value;
+            editor.edit.setOption('mode', mode);
+            editor.rightOriginal().setOption('mode', mode);
 
             patchEditor.currentId = option;
             patchEditor.setValue(patchInput.value);
-            patchEditor.setOption('mode', format);
+            patchEditor.setOption('mode', mode);
 
             deleteEditor.currentId = option;
             deleteEditor.setValue(deleteInput.value);
-            deleteEditor.setOption('mode', format);
+            deleteEditor.setOption('mode', mode);
         }
 
         function updateSelectedNacosConfigs(select) {
