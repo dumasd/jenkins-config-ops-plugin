@@ -10,6 +10,76 @@
 
 }
 
+.custom-button {
+    border: none; /* 无边框 */
+    border-radius: 4px; /* 圆角 */
+    padding: .375rem 1rem;
+    color: white;
+    margin-left: 0.25rem;
+    margin-right: 0.25rem;
+    /*font-size: 16px;*/
+    cursor: pointer;
+    box-sizing: border-box;
+    display: inline-flex;
+    text-align: center;
+    align-items: center;
+    text-decoration: none;
+    justify-content: center;
+    transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+/* 蓝色按钮 */
+.custom-button.blue {
+    background-color: #007bff;
+}
+
+.custom-button.blue:hover {
+    background-color: #0069d9;
+}
+
+.custom-button.blue:active {
+    background-color: #005cbf;
+}
+
+.custom-button.blue.disabled {
+    background-color: #90caf9;
+    color: #eeeeee;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* 红色按钮 */
+.custom-button.red {
+    background-color: #dc3545;
+}
+
+.custom-button.red:hover {
+    background-color: #c82333;
+}
+
+.custom-button.red:active {
+    background-color: #bd2130;
+}
+
+.custom-button.red.disabled {
+    background-color: #ef9a9a;
+    color: #eeeeee;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* 禁用状态 */
+.custom-button.disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
 .form-item-100 {
     max-width: 100%;
     margin-bottom: 0.1rem;
