@@ -2,6 +2,7 @@ package io.jenkins.plugins.configops.model.req;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -23,4 +24,6 @@ public class NacosGetChangeSetReq implements Serializable {
     private String contexts;
 
     private Map<String, String> vars;
+
+    private Set<String> allowedDataIds;
 }

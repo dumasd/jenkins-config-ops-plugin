@@ -16,4 +16,7 @@
     <f:entry title="${%vars}" field="vars">
         <f:textarea/>
     </f:entry>
+    <f:entry title="${%allowedDataIds}" field="allowedDataIds">
+        <f:textbox/>
+    </f:entry>
 </j:jelly>
