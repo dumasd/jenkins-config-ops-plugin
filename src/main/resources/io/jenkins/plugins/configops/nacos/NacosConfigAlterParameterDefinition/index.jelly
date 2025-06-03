@@ -42,8 +42,8 @@
         <div name="value" id="nacosConfigEditPanes">
         </div>
         <div class="operate-form">
-            <div id="patchBtn" type="button" class="form-item-1 custom-button blue disabled">${%Patch}</div>
-            <div id="deleteBtn" type="button" class="form-item-1 custom-button red disabled">${%Delete}</div>
+            <div id="patchBtn" type="button" class="form-item-1 custom-button blue disabled">${%Apply}</div>
+            <!--<div id="deleteBtn" type="button" class="form-item-1 custom-button red disabled">${%Delete}</div>-->
             <div id="resetBtn" type="button" class="form-item-1 custom-button red disabled">${%Reset}</div>
         </div>
 
@@ -300,7 +300,6 @@
 
         const selectAllBtn = document.getElementById("selectAllBtn");
         const patchBtn = document.getElementById("patchBtn");
-        const deleteBtn = document.getElementById("deleteBtn");
         const resetBtn = document.getElementById("resetBtn");
 
 
@@ -324,14 +323,7 @@
             if (patchBtn.classList.contains('disabled')) {
                 return;
             }
-            editNextContent("/patchContent", patchEditor.getValue());
-        });
-
-        deleteBtn.addEventListener("click", function () {
-            if (deleteBtn.classList.contains('disabled')) {
-                return;
-            }
-            editNextContent("/deleteContent", deleteEditor.getValue());
+            editNextContent(patchEditor.getValue(), deleteEditor.getValue());
         });
 
         selectAllBtn.addEventListener("click", function () {
@@ -355,15 +347,16 @@
             return formBody.join("&");
         }
 
-        function editNextContent(path, edit) {
+        function editNextContent(patchContent, deleteContent) {
             if (!editor.edit.currentId) {
                 console.log("Not selected for:", path);
                 return;
             }
             const formatInput = document.querySelector("#nacosConfigCurrentType-" + editor.edit.currentId);
             const format = formatInput.value;
-            const content = editor.edit.getValue();
-            fetch(BASE_URL + path, {
+            // const content = editor.edit.getValue();
+            const content = editor.rightOriginal().getValue();
+            fetch(BASE_URL + "/deleteAndPatchContent", {
                 method: "post",
                 headers: crumb.wrap({
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -371,7 +364,8 @@
                 body: objectToUrlFormEncoded({
                     format: format,
                     content: content,
-                    edit: edit
+                    patch: patchContent,
+                    delete: deleteContent
                 })
             })
                     .then((response) => response.json())
@@ -396,17 +390,11 @@
         document.addEventListener('DOMContentLoaded', function () {
             const nacosConfigsSelect = document.querySelector("#nacosConfigsSelect");
             const patchBtn = document.getElementById("patchBtn");
-            const deleteBtn = document.getElementById("deleteBtn");
             const resetBtn = document.getElementById("resetBtn");
             nacosConfigsSelect.disabled = false;
 
             patchBtn.classList.remove('disabled');
-            deleteBtn.classList.remove('disabled');
             resetBtn.classList.remove('disabled');
-
-            //patchBtn.disabled = false;
-            //deleteBtn.disabled = false;
-            //resetBtn.disabled = false;
         });
         ]]>
     </script>
