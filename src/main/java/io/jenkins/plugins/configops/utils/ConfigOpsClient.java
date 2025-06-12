@@ -8,6 +8,7 @@ import io.jenkins.plugins.configops.model.req.CommonEditContentReq;
 import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
 import io.jenkins.plugins.configops.model.req.DatabaseRunLiquibaseReq;
 import io.jenkins.plugins.configops.model.req.ElasticsearchChangeSetReq;
+import io.jenkins.plugins.configops.model.req.GraphdbChangeSetReq;
 import io.jenkins.plugins.configops.model.req.NacosApplyChangeSetReq;
 import io.jenkins.plugins.configops.model.req.NacosConfigReq;
 import io.jenkins.plugins.configops.model.req.NacosGetChangeSetReq;
@@ -175,6 +176,18 @@ public class ConfigOpsClient implements Serializable {
             HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
             httpReq.setEntity(entity);
             return httpClient.execute(httpReq, new JsonArrayHttpResponseHandler<>(ElasticsearchChangeSetDTO.class));
+        } catch (Exception e) {
+            throw new ConfigOpsException(e);
+        }
+    }
+
+    public String applyGraphdbChangeSet(GraphdbChangeSetReq req) {
+        try (CloseableHttpClient httpClient = HttpUtils.createClient()) {
+            URIBuilder uriBuilder = new URIBuilder(url + "/graphdb/v1/apply_change_set");
+            HttpPost httpReq = new HttpPost(uriBuilder.build());
+            HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
+            httpReq.setEntity(entity);
+            return httpClient.execute(httpReq, new StringHttpClientResponseHandler());
         } catch (Exception e) {
             throw new ConfigOpsException(e);
         }
