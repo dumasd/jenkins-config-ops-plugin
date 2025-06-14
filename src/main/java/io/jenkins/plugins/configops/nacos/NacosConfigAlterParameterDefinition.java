@@ -8,7 +8,6 @@ import hudson.model.ParameterValue;
 import hudson.slaves.EnvironmentVariablesNodeProperty;
 import hudson.slaves.NodeProperty;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
-import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
 import io.jenkins.plugins.configops.model.req.CommonEditContentReq;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
@@ -67,7 +66,7 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
     public ParameterValue createValue(StaplerRequest req, JSONObject jo) {
         JSONObject value = jo.getJSONObject("value");
         JSONArray ids = value.names();
-        List<NacosConfigModifyDTO> result = new ArrayList<>(ids.size());
+        List<NacosConfigDTO> result = new ArrayList<>(ids.size());
         for (int i = 0; i < ids.size(); i++) {
             String id = ids.getString(i);
             JSONObject item = value.getJSONObject(id);
@@ -78,14 +77,15 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
                     throw new IllegalArgumentException("Nacos config not found: id:" + id);
                 }
                 String format = item.getOrDefault("format", ncd.getFormat()).toString();
-                NacosConfigModifyDTO dto = new NacosConfigModifyDTO();
-                dto.setNamespace(ncd.getNamespace());
-                dto.setGroup(ncd.getGroup());
-                dto.setDataId(ncd.getDataId());
-                dto.setContent(ncd.getContent());
-                dto.setFormat(format);
-                dto.setNextContent(item.getString("content"));
-                result.add(dto);
+                NacosConfigDTO modifiedConfig = new NacosConfigDTO();
+                modifiedConfig.setId(ncd.getId());
+                modifiedConfig.setNamespace(ncd.getNamespace());
+                modifiedConfig.setGroup(ncd.getGroup());
+                modifiedConfig.setDataId(ncd.getDataId());
+                modifiedConfig.setContent(ncd.getContent());
+                modifiedConfig.setFormat(format);
+                modifiedConfig.setNextContent(item.getString("content"));
+                result.add(modifiedConfig);
             }
         }
         return new NacosConfigAlterParameterValue(getName(), result);
@@ -116,9 +116,9 @@ public class NacosConfigAlterParameterDefinition extends ParameterDefinition {
     public static class NacosConfigAlterParameterValue extends ParameterValue {
 
         private static final long serialVersionUID = 4313454723473437740L;
-        private final List<NacosConfigModifyDTO> result;
+        private final List<NacosConfigDTO> result;
 
-        public NacosConfigAlterParameterValue(String name, List<NacosConfigModifyDTO> result) {
+        public NacosConfigAlterParameterValue(String name, List<NacosConfigDTO> result) {
             super(name);
             this.result = result;
         }

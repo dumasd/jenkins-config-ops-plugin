@@ -9,7 +9,6 @@ import hudson.model.TaskListener;
 import hudson.remoting.Callable;
 import hudson.remoting.VirtualChannel;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
-import io.jenkins.plugins.configops.model.dto.NacosConfigModifyDTO;
 import io.jenkins.plugins.configops.model.req.NacosApplyChangeSetReq;
 import io.jenkins.plugins.configops.utils.ConfigOpsClient;
 import io.jenkins.plugins.configops.utils.Constants;
@@ -52,11 +51,11 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
 
     private final List<String> changeSetIds;
 
-    private final List<NacosConfigModifyDTO> items;
+    private final List<NacosConfigDTO> items;
 
     @DataBoundConstructor
     public NacosChangeSetApplyStep(
-            @NonNull String nacosId, @NonNull List<String> changeSetIds, @NonNull List<NacosConfigModifyDTO> items) {
+            @NonNull String nacosId, @NonNull List<String> changeSetIds, @NonNull List<NacosConfigDTO> items) {
         this.nacosId = nacosId;
         this.changeSetIds = changeSetIds;
         this.items = items;
