@@ -19,6 +19,7 @@ import io.jenkins.plugins.configops.utils.Utils;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -30,7 +31,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import net.sf.json.JSONObject;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jenkinsci.plugins.workflow.steps.Step;
@@ -136,18 +136,20 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
                     step.getVars(),
                     step.getAllowedDataIds()));
             logger.log("Get ChangeSet from file: %s", step.getChangeLogFile());
-            if (CollectionUtils.isNotEmpty(resp.getChanges())) {
-                for (NacosConfigDTO nc : resp.getChanges()) {
-                    if (StringUtils.isBlank(nc.getId())) {
-                        nc.setId(RandomStringUtils.randomAlphanumeric(20));
-                    }
+            if (resp.getChanges() == null) {
+                resp.setChanges(new ArrayList<>());
+            }
+            for (NacosConfigDTO nc : resp.getChanges()) {
+                if (StringUtils.isBlank(nc.getId())) {
+                    nc.setId(RandomStringUtils.randomAlphanumeric(20));
                 }
             }
-            if (CollectionUtils.isNotEmpty(resp.getDeleteChanges())) {
-                for (NacosConfigDTO nc : resp.getDeleteChanges()) {
-                    if (StringUtils.isBlank(nc.getId())) {
-                        nc.setId(RandomStringUtils.randomAlphanumeric(20));
-                    }
+            if (resp.getDeleteChanges() == null) {
+                resp.setDeleteChanges(new ArrayList<>());
+            }
+            for (NacosConfigDTO nc : resp.getDeleteChanges()) {
+                if (StringUtils.isBlank(nc.getId())) {
+                    nc.setId(RandomStringUtils.randomAlphanumeric(20));
                 }
             }
             logger.log("Found ChangeSet. ids:%s", Objects.toString(resp.getIds()));
