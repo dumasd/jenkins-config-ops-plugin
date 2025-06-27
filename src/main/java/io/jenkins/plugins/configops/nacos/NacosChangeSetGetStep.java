@@ -143,6 +143,13 @@ public class NacosChangeSetGetStep extends Step implements Serializable {
                     }
                 }
             }
+            if (CollectionUtils.isNotEmpty(resp.getDeleteChanges())) {
+                for (NacosConfigDTO nc : resp.getDeleteChanges()) {
+                    if (StringUtils.isBlank(nc.getId())) {
+                        nc.setId(RandomStringUtils.randomAlphanumeric(20));
+                    }
+                }
+            }
             logger.log("Found ChangeSet. ids:%s", Objects.toString(resp.getIds()));
             return resp;
         }

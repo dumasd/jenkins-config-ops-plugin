@@ -1,4 +1,8 @@
 
+.jenkins-form-item--medium {
+    max-width: 100%;
+}
+
 .descriptions_item_container {
     display: flex;
 

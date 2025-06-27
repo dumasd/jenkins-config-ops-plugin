@@ -1,6 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core"
-         xmlns:f="/lib/form">
+<j:jelly xmlns:j="jelly:core">
     <link rel="stylesheet" href="${rootURL}/plugin/jenkins-config-ops-plugin/css/nacos-config-index.css"
           type="text/css"/>
 
@@ -22,17 +21,19 @@
         </j:forEach>
     </div>
 
-    <f:entry title="${%ConfigurationSelect}">
+    <div class="form-item-100">
+        <span class="title">${%ConfigurationSelect}</span>
         <div class="config-select">
             <select id="nacosConfigsSelect" multiple="multiple" size="${it.getItemSelectSize()}" disabled="true"
                     onchange="updateSelectedNacosConfigs(this)">
                 <j:forEach items="${it.getItems()}" var="item" varStatus="status">
-                    <f:option value="${item.id}">${item.fullName()}</f:option>
+                    <option value="${item.id}">${item.fullName()}</option>
+<!--                    <f:option value="${item.id}">${item.fullName()}</f:option>-->
                 </j:forEach>
             </select>
             <div class="select-all-btn custom-button blue" id="selectAllBtn">${%SelectAll}</div>
         </div>
-    </f:entry>
+    </div>
 
 
     <div name="parameter" id="nacosConfigEditMain" style="margin-top: 5px;">
@@ -61,11 +62,12 @@
             </div>
         </div>
 
-        <f:entry title="${%ConfigurationChangeComparison}"
-                 class="form-item-100">
+        <div class="form-item-100">
+            <span class="title">${%ConfigurationChangeComparison}</span>
             <div style="height: 450px" id="nacosConfigMergeEditorContainer">
             </div>
-        </f:entry>
+        </div>
+
     </div>
 
     <script src="${rootURL}/plugin/jenkins-config-ops-plugin/dependencies/diff-match-patch/1.0.5/index.js"/>

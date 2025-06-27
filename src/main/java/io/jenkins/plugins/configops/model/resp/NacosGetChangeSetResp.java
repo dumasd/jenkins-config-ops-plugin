@@ -22,4 +22,6 @@ public class NacosGetChangeSetResp implements Serializable {
     private List<String> ids;
 
     private List<NacosConfigDTO> changes;
+
+    private List<NacosConfigDTO> deleteChanges;
 }

@@ -15,6 +15,7 @@ import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -53,6 +54,8 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
 
     private final List<NacosConfigDTO> items;
 
+    private List<NacosConfigDTO> deleteItems;
+
     @DataBoundConstructor
     public NacosChangeSetApplyStep(
             @NonNull String nacosId, @NonNull List<String> changeSetIds, @NonNull List<NacosConfigDTO> items) {
@@ -64,6 +67,11 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
     @DataBoundSetter
     public void setToolUrl(String toolUrl) {
         this.toolUrl = toolUrl;
+    }
+
+    @DataBoundSetter
+    public void setDeleteItems(List<NacosConfigDTO> deleteItems) {
+        this.deleteItems = deleteItems;
     }
 
     @Override
@@ -107,8 +115,8 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
         @Override
         protected Map<String, Object> run() throws Exception {
             TaskListener taskListener = getContext().get(TaskListener.class);
-            Logger logger = new Logger("NacosConfigApply", taskListener);
             Launcher launcher = getContext().get(Launcher.class);
+            Logger logger = new Logger("NacosConfigApply", taskListener);
             List<NacosConfigDTO> changes = step.getItems().stream()
                     .map(e -> {
                         NacosConfigDTO nc = new NacosConfigDTO();
@@ -120,13 +128,28 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
                         return nc;
                     })
                     .collect(Collectors.toList());
+
+            List<NacosConfigDTO> deleteChanges = new ArrayList<>();
+            if (step.getDeleteItems() != null) {
+                deleteChanges = step.getDeleteItems().stream()
+                        .map(e -> {
+                            NacosConfigDTO nc = new NacosConfigDTO();
+                            nc.setNamespace(e.getNamespace());
+                            nc.setGroup(e.getGroup());
+                            nc.setDataId(e.getDataId());
+                            nc.setFormat(e.getFormat());
+                            return nc;
+                        })
+                        .collect(Collectors.toList());
+            }
+
             VirtualChannel channel = Utils.getChannel(launcher);
             logger.log(
                     "Applying change log config. toolUrl:%s, nacosId:%s, changeSetIds:%s",
                     step.getToolUrl(), step.getNacosId(), step.getChangeSetIds());
 
-            channel.call(
-                    new RemoteExecutionCallable(step.getToolUrl(), step.getNacosId(), step.getChangeSetIds(), changes));
+            channel.call(new RemoteExecutionCallable(
+                    step.getToolUrl(), step.getNacosId(), step.getChangeSetIds(), changes, deleteChanges));
 
             return Collections.emptyMap();
         }
@@ -139,13 +162,19 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
         private final String nacosId;
         private final List<String> changeSetIds;
         private final List<NacosConfigDTO> changes;
+        private final List<NacosConfigDTO> deleteChanges;
 
         public RemoteExecutionCallable(
-                String toolUrl, String nacosId, List<String> changeSetIds, List<NacosConfigDTO> changes) {
+                String toolUrl,
+                String nacosId,
+                List<String> changeSetIds,
+                List<NacosConfigDTO> changes,
+                List<NacosConfigDTO> deleteChanges) {
             this.toolUrl = toolUrl;
             this.nacosId = nacosId;
             this.changeSetIds = changeSetIds;
             this.changes = changes;
+            this.deleteChanges = deleteChanges;
         }
 
         @Override
@@ -156,6 +185,7 @@ public class NacosChangeSetApplyStep extends Step implements Serializable {
             req.setNacosId(nacosId);
             req.setChangeSetIds(changeSetIds);
             req.setChanges(changes);
+            req.setDeleteChanges(deleteChanges);
             return client.applyChangeSet(req);
         }
 
