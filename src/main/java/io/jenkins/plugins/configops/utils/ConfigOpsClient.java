@@ -4,16 +4,9 @@ import com.alibaba.fastjson2.JSON;
 import io.jenkins.plugins.configops.model.dto.ElasticsearchChangeSetDTO;
 import io.jenkins.plugins.configops.model.dto.NacosConfigDTO;
 import io.jenkins.plugins.configops.model.dto.NacosNamespaceDTO;
-import io.jenkins.plugins.configops.model.req.CommonEditContentReq;
-import io.jenkins.plugins.configops.model.req.DatabaseConfigReq;
-import io.jenkins.plugins.configops.model.req.DatabaseRunLiquibaseReq;
-import io.jenkins.plugins.configops.model.req.ElasticsearchChangeSetReq;
-import io.jenkins.plugins.configops.model.req.GraphdbChangeSetReq;
-import io.jenkins.plugins.configops.model.req.NacosApplyChangeSetReq;
-import io.jenkins.plugins.configops.model.req.NacosConfigReq;
-import io.jenkins.plugins.configops.model.req.NacosGetChangeSetReq;
-import io.jenkins.plugins.configops.model.req.NacosGetConfigsReq;
+import io.jenkins.plugins.configops.model.req.*;
 import io.jenkins.plugins.configops.model.resp.DatabaseConfigApplyResp;
+import io.jenkins.plugins.configops.model.resp.DatabaseProvisionResp;
 import io.jenkins.plugins.configops.model.resp.DatabaseRunLiquibaseResp;
 import io.jenkins.plugins.configops.model.resp.NacosConfigModifyPreviewResp;
 import io.jenkins.plugins.configops.model.resp.NacosGetChangeSetResp;
@@ -164,6 +157,18 @@ public class ConfigOpsClient implements Serializable {
             HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
             httpReq.setEntity(entity);
             return httpClient.execute(httpReq, new JsonObjectHttpResponseHandler<>(DatabaseRunLiquibaseResp.class));
+        } catch (Exception e) {
+            throw new ConfigOpsException(e);
+        }
+    }
+
+    public DatabaseProvisionResp databaseProvision(DatabaseProvisionReq req) {
+        try (CloseableHttpClient httpClient = HttpUtils.createClient()) {
+            URIBuilder uriBuilder = new URIBuilder(url + "/database/v1/provision");
+            HttpPost httpReq = new HttpPost(uriBuilder.build());
+            HttpEntity entity = HttpEntities.create(JSON.toJSONString(req), ContentType.APPLICATION_JSON);
+            httpReq.setEntity(entity);
+            return httpClient.execute(httpReq, new JsonObjectHttpResponseHandler<>(DatabaseProvisionResp.class));
         } catch (Exception e) {
             throw new ConfigOpsException(e);
         }

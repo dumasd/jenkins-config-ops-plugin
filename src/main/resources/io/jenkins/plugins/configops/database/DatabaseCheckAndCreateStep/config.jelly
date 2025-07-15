@@ -1,0 +1,16 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core"
+         xmlns:f="/lib/form">
+    <f:entry title="${%DatabaseId}" field="databaseId">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%DbName}" field="dbName">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%User}" field="user">
+        <f:textbox/>
+    </f:entry>
+    <f:entry title="${%IpSource}" field="ipsource">
+        <f:textbox/>
+    </f:entry>
+</j:jelly>
