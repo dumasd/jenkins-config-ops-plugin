@@ -21,6 +21,10 @@ import io.jenkins.plugins.configops.utils.Constants;
 import io.jenkins.plugins.configops.utils.Logger;
 import io.jenkins.plugins.configops.utils.Utils;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import jenkins.tasks.SimpleBuildStep;
 import lombok.Getter;
 import lombok.extern.java.Log;
@@ -36,7 +40,7 @@ import org.kohsuke.stapler.verb.POST;
 public class DatabaseCheckAndCreateStep extends Builder implements SimpleBuildStep {
 
     /**
-     * Config Ops工具地址
+     * Config-ops tool url
      */
     private String toolUrl = Constants.DEFAULT_TOOL_URL;
     /**
@@ -55,6 +59,10 @@ public class DatabaseCheckAndCreateStep extends Builder implements SimpleBuildSt
      * The user ip source
      */
     private String ipsource;
+    /**
+     * The permissions
+     */
+    private String permissions;
 
     @DataBoundConstructor
     public DatabaseCheckAndCreateStep(String databaseId, String dbName, String user) {
@@ -73,6 +81,11 @@ public class DatabaseCheckAndCreateStep extends Builder implements SimpleBuildSt
         this.ipsource = ipsource;
     }
 
+    @DataBoundSetter
+    public void setPermissions(String permissions) {
+        this.permissions = permissions;
+    }
+
     @Override
     public void perform(
             @NonNull Run<?, ?> run,
@@ -87,6 +100,15 @@ public class DatabaseCheckAndCreateStep extends Builder implements SimpleBuildSt
         req.setDbName(Util.fixEmptyAndTrim(dbName));
         req.setUser(Util.fixEmptyAndTrim(user));
         req.setIpsource(Util.fixEmptyAndTrim(ipsource));
+        String fixPermissions = Util.fixEmptyAndTrim(permissions);
+        List<String> permissionList = null;
+        if (fixPermissions != null) {
+            permissionList = Arrays.stream(fixPermissions.split(","))
+                    .map(Util::fixEmptyAndTrim)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        req.setPermissions(permissionList);
         DatabaseProvisionResp resp = workspace.act(new RunCheckAndCreateCallable(toolUrl, req));
         if (resp.getMessages() != null) {
             for (String msg : resp.getMessages()) {
@@ -151,6 +173,20 @@ public class DatabaseCheckAndCreateStep extends Builder implements SimpleBuildSt
         public FormValidation doCheckUser(@QueryParameter("user") String user) {
             if (Utils.isNullOrEmpty(user)) {
                 return FormValidation.error("User is required");
+            }
+            return FormValidation.ok();
+        }
+
+        @POST
+        public FormValidation doCheckPermissions(@QueryParameter("permissions") String permissions) {
+            if (Utils.isNullOrEmpty(permissions)) {
+                return FormValidation.ok();
+            }
+            String[] permissionList = permissions.split(",");
+            for (String permission : permissionList) {
+                if (Utils.isNullOrEmpty(permission)) {
+                    return FormValidation.error("Empty permission in the list");
+                }
             }
             return FormValidation.ok();
         }

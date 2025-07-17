@@ -13,4 +13,7 @@
     <f:entry title="${%IpSource}" field="ipsource">
         <f:textbox/>
     </f:entry>
+    <f:entry title="${%Permissions}" field="permissions">
+        <f:textbox/>
+    </f:entry>
 </j:jelly>
