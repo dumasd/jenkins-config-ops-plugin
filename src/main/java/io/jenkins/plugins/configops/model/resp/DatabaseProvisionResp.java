@@ -17,4 +17,6 @@ public class DatabaseProvisionResp implements Serializable {
     private static final long serialVersionUID = 2403018903143091158L;
 
     private List<String> messages;
+
+    private String password;
 }
